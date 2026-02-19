@@ -161,8 +161,62 @@ def ambil_laporan():
 @laporan_bp.get("/statistik")
 @limiter.limit("60/minute")
 def statistik():
-    """Statistik agregat untuk kartu dashboard."""
+    """Statistik agregat untuk kartu dashboard.
+
+    Query params opsional:
+        lat, lng        — koordinat user (float)
+        radius_km       — radius pencarian area (default: 10)
+    Jika lat & lng diberikan, respons menyertakan kasus_area dan pengguna_area.
+    """
+    from math import radians, cos
     now = datetime.now(timezone.utc)
+
+    # ── Parameter lokasi opsional ─────────────────────────
+    kasus_area      = None
+    kasus_area_48j  = None
+    pengguna_area   = None
+    radius_km       = 10.0
+    try:
+        lat = float(request.args["lat"])
+        lng = float(request.args["lng"])
+        radius_km = float(request.args.get("radius_km", 10))
+        ada_lokasi = True
+    except (KeyError, ValueError, TypeError):
+        ada_lokasi = False
+
+    # ── Hitung kasus area jika lokasi tersedia ────────────
+    if ada_lokasi:
+        from math import radians, cos, sin, sqrt, atan2
+        delta     = radius_km / 111.0
+        lng_delta = delta / max(cos(radians(lat)), 0.001)
+        cutoff_area = now - timedelta(hours=48)
+
+        # Bounding-box pre-filter
+        q_area = LaporanInfluenza.query.filter(
+            LaporanInfluenza.lat  >= lat - delta,
+            LaporanInfluenza.lat  <= lat + delta,
+            LaporanInfluenza.lng  >= lng - lng_delta,
+            LaporanInfluenza.lng  <= lng + lng_delta,
+        )
+        q_area_48j = q_area.filter(LaporanInfluenza.timestamp >= cutoff_area)
+
+        # Haversine exact filter di Python
+        def haversine_km(la1, lo1, la2, lo2):
+            R = 6371
+            dLat = radians(la2 - la1)
+            dLon = radians(lo2 - lo1)
+            a = sin(dLat/2)**2 + cos(radians(la1)) * cos(radians(la2)) * sin(dLon/2)**2
+            return R * 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        rows_area    = q_area.all()
+        rows_area48j = q_area_48j.all()
+
+        kasus_area     = sum(1 for r in rows_area    if haversine_km(lat, lng, float(r.lat), float(r.lng)) <= radius_km)
+        kasus_area_48j = sum(1 for r in rows_area48j if haversine_km(lat, lng, float(r.lat), float(r.lng)) <= radius_km)
+
+        # Jumlah pengguna unik yang melapor di area (48 jam)
+        pengguna_area = len({r.user_id for r in rows_area48j
+                             if haversine_km(lat, lng, float(r.lat), float(r.lng)) <= radius_km and r.user_id})
 
     def hitung(jam):
         return LaporanInfluenza.query.filter(
@@ -239,7 +293,7 @@ def statistik():
             "timestamp": r.timestamp.isoformat(),
         })
 
-    return jsonify({
+    resp = {
         "kasus_24jam":     total_24j,
         "kasus_48jam":     total_48j,
         "kasus_7hari":     total_7h,
@@ -252,4 +306,12 @@ def statistik():
         "indeks_risiko":   indeks_risiko,
         "gejala_dominan":  gejala_persen,
         "peringatan":      peringatan,
-    })
+    }
+    if ada_lokasi:
+        resp["area"] = {
+            "radius_km":      radius_km,
+            "kasus_total":    kasus_area,
+            "kasus_48jam":    kasus_area_48j,
+            "pengguna_unik":  pengguna_area,
+        }
+    return jsonify(resp)

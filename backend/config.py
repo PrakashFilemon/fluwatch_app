@@ -17,7 +17,7 @@ class Config:
 
     OPENROUTER_API_KEY: str         = os.getenv("OPENROUTER_API_KEY", "")
     OPENROUTER_API_URL: str         = "https://openrouter.ai/api/v1/chat/completions"
-    AI_MODEL: str                   = os.getenv("AI_MODEL", "upstage/solar-pro-3:free")
+    AI_MODEL: str                   = os.getenv("AI_MODEL", "stepfun/step-3.5-flash:free")
 
     APP_URL: str                    = os.getenv("APP_URL", "http://localhost:5000")
     FRONTEND_URL: str               = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -27,6 +27,7 @@ class Config:
 
     JWT_SECRET_KEY: str             = os.getenv("JWT_SECRET_KEY", "jwt-dev-secret")
     JWT_ACCESS_TOKEN_EXPIRES_HOURS: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_HOURS", "24"))
+
 
 
 config = Config()

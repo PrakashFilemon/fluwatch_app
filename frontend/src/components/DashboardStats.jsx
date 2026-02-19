@@ -69,16 +69,28 @@ export default function DashboardStats({ refreshKey = 0, onBukaAI }) {
   const [stat,    setStat]    = useState(null);
   const [loading, setLoading] = useState(true);
   const [tUpdate, setTUpdate] = useState(Date.now());
+  const [lokasi,  setLokasi]  = useState(null); // { lat, lng } lokasi user
+
+  // Minta lokasi browser sekali saat mount
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setLokasi({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      ()    => { /* user tolak izin — tetap tampil statistik global */ },
+      { timeout: 8000, maximumAge: 300_000 }
+    );
+  }, []);
 
   const muat = useCallback(async () => {
     setLoading(true);
     try {
-      const d = await ambilStatistik();
+      const params = lokasi ? { lat: lokasi.lat, lng: lokasi.lng, radius_km: 10 } : undefined;
+      const d = await ambilStatistik(params);
       setStat(d);
       setTUpdate(Date.now());
     } catch { /* silent */ }
     finally { setLoading(false); }
-  }, [refreshKey]);
+  }, [refreshKey, lokasi]);
 
   useEffect(() => {
     muat();
@@ -178,6 +190,37 @@ export default function DashboardStats({ refreshKey = 0, onBukaAI }) {
             sub="Total"
           />
         </div>
+
+        {/* ── Statistik Area User ── */}
+        {stat?.area && (
+          <div className="rounded-xl p-4" style={{ background: "#0d1627", border: "1px solid #1a2744" }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span style={{ fontSize: 14 }}>📍</span>
+              <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: "#64748b" }}>
+                Area Sekitarmu ({stat.area.radius_km} km)
+              </h3>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-lg px-3 py-3 text-center" style={{ background: "#111827", border: "1px solid #1e293b" }}>
+                <p className="text-xl font-bold text-white">{stat.area.kasus_48jam}</p>
+                <p className="text-xs mt-0.5" style={{ color: "#475569" }}>Laporan 48j</p>
+              </div>
+              <div className="rounded-lg px-3 py-3 text-center" style={{ background: "#111827", border: "1px solid #1e293b" }}>
+                <p className="text-xl font-bold text-white">{stat.area.kasus_total}</p>
+                <p className="text-xs mt-0.5" style={{ color: "#475569" }}>Total Laporan</p>
+              </div>
+              <div className="rounded-lg px-3 py-3 text-center" style={{ background: "#111827", border: "1px solid #1e293b" }}>
+                <p className="text-xl font-bold" style={{ color: "#93c5fd" }}>{stat.area.pengguna_unik}</p>
+                <p className="text-xs mt-0.5" style={{ color: "#475569" }}>Pelapor Unik</p>
+              </div>
+            </div>
+            {stat.area.kasus_48jam === 0 && (
+              <p className="text-xs mt-2 text-center" style={{ color: "#334155" }}>
+                Belum ada laporan di area ini dalam 48 jam terakhir
+              </p>
+            )}
+          </div>
+        )}
 
         {/* ── Frekuensi Gejala ── */}
         {stat?.gejala_dominan?.length > 0 && (

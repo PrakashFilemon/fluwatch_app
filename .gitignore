@@ -111,3 +111,10 @@ desktop.ini
 gunicorn.pid
 celerybeat-schedule
 celerybeat.pid
+
+# ─── Docker ────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ─── Backup ────────────────────────────────────────────────
+*.bak
+*.orig

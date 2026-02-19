@@ -1,0 +1,54 @@
+# ── Rahasia ─────────────────────────────────────────────
+.env
+.env.*
+*.secret
+*.key
+*.pem
+
+# ── Python cache ─────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environment ──────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Testing ──────────────────────────────────────────────
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ── Script dev (tidak perlu di production) ───────────────
+setup_db.py
+
+# ── Git ──────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── Dokumentasi ──────────────────────────────────────────
+*.md
+*.txt
+!requirements.txt
+
+# ── Log & temp ───────────────────────────────────────────
+*.log
+logs/
+*.tmp
+
+# ── IDE ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

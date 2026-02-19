@@ -1,0 +1,61 @@
+services:
+  # ── Database ────────────────────────────────────────────
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: fluwatch_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # hapus di production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fluwatch_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend Flask ───────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: backend
+    environment:
+      DATABASE_URL: postgresql://postgres:admin@db:5432/fluwatch_db
+      SECRET_KEY: ganti-dengan-kunci-rahasia-production
+      JWT_SECRET_KEY: ganti-dengan-jwt-secret-production
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      AI_MODEL: ${AI_MODEL:-stepfun/step-3.5-flash:free}
+      APP_URL: http://localhost
+      FRONTEND_URL: http://localhost
+      FLASK_DEBUG: "false"
+    expose:
+      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Frontend React (static via nginx) ──────────────────
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    expose:
+      - "80"
+    depends_on:
+      - backend
+
+  # ── Nginx Reverse Proxy ─────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  postgres_data:

@@ -27,8 +27,8 @@ export const kirimLaporan   = (data)   => http.post("/laporan", data).then(r => 
 /** Ambil daftar laporan terbaru */
 export const ambilLaporan   = (params) => http.get("/laporan", { params }).then(r => r.data);
 
-/** Ambil statistik agregat */
-export const ambilStatistik = ()       => http.get("/laporan/statistik").then(r => r.data);
+/** Ambil statistik agregat. Opsional: { lat, lng, radius_km } untuk data area. */
+export const ambilStatistik = (params) => http.get("/laporan/statistik", { params }).then(r => r.data);
 
 /** Ambil data titik heatmap */
 export const ambilDataPeta  = (params) => http.get("/peta", { params }).then(r => r.data);
