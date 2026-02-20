@@ -25,7 +25,7 @@ services:
       DATABASE_URL: postgresql://postgres:admin@db:5432/fluwatch_db
       SECRET_KEY: ganti-dengan-kunci-rahasia-production
       JWT_SECRET_KEY: ganti-dengan-jwt-secret-production
-      OPENROUTER_API_KEY: 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
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       AI_MODEL: ${AI_MODEL:-stepfun/step-3.5-flash:free}
       APP_URL: https://fluwatch.skrz-indonesia.com
       FRONTEND_URL: https://fluwatch.skrz-indonesia.com
