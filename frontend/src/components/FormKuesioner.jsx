@@ -146,7 +146,6 @@ export default function FormKuesioner({ lokasi, namaLokasi, onTutup, onSelesai }
   return (
     <div
       className="fixed inset-0 z-[1000] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={e => e.target === e.currentTarget && onTutup?.()}
     >
       <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-2xl anim-fade-up">
 

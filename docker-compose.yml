@@ -20,18 +20,18 @@ services:
   # ── Backend Flask ───────────────────────────────────────
   backend:
     build: ./backend
-    container_name: backend
+    container_name: fluwatch_backend
     environment:
       DATABASE_URL: postgresql://postgres:admin@db:5432/fluwatch_db
       SECRET_KEY: ganti-dengan-kunci-rahasia-production
       JWT_SECRET_KEY: ganti-dengan-jwt-secret-production
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      OPENROUTER_API_KEY: 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
       AI_MODEL: ${AI_MODEL:-stepfun/step-3.5-flash:free}
-      APP_URL: http://localhost
-      FRONTEND_URL: http://localhost
+      APP_URL: https://fluwatch.skrz-indonesia.com
+      FRONTEND_URL: https://fluwatch.skrz-indonesia.com
       FLASK_DEBUG: "false"
-    expose:
-      - "8000"
+    ports:
+      - "8001:8000" # host nginx proxy ke port 8001
     depends_on:
       db:
         condition: service_healthy
@@ -39,22 +39,10 @@ services:
   # ── Frontend React (static via nginx) ──────────────────
   frontend:
     build: ./frontend
-    container_name: frontend
-    expose:
-      - "80"
-    depends_on:
-      - backend
-
-  # ── Nginx Reverse Proxy ─────────────────────────────────
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
+    container_name: fluwatch_frontend
     ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - "3001:80" # host nginx proxy ke port 3001
     depends_on:
-      - frontend
       - backend
 
 volumes:

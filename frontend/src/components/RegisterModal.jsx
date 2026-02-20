@@ -34,8 +34,7 @@ export default function RegisterModal({ onTutup, onBukaMasuk, onSelesai }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.75)" }}
-      onClick={(e) => e.target === e.currentTarget && onTutup()}>
+      style={{ background: "rgba(0,0,0,0.75)" }}>
 
       <div className="w-full max-w-sm rounded-2xl p-6 space-y-5"
         style={{ background: "#0d1627", border: "1px solid #1e3a5f" }}>

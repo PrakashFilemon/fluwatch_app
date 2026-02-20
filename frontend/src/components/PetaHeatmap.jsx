@@ -348,7 +348,7 @@ export default function PetaHeatmap({
 
   useEffect(() => {
     muat();
-    const id = setInterval(muat, 500_000);
+    const id = setInterval(muat, 300_000); // refresh tiap 5 menit
     return () => clearInterval(id);
   }, [muat]);
 
@@ -377,7 +377,7 @@ export default function PetaHeatmap({
   return (
     <div className="relative w-full h-full">
       {/* ════ OVERLAY ATAS — Status + Kontrol Layer ════ */}
-      <div className="absolute top-3 left-3 right-3 z-[999] flex items-stretch gap-2">
+      <div className="absolute top-3 left-3 right-3 z-[9] flex items-stretch gap-2">
         {/* Status wilayah */}
         <div
           className="flex items-center gap-3 px-4 py-2.5 rounded-xl flex-1 pointer-events-none"
@@ -530,6 +530,18 @@ export default function PetaHeatmap({
             <span style={{ color: "#475569" }}>Jendela waktu</span>
             <span className="font-bold" style={{ color: "#64748b" }}>
               {jendela}h
+            </span>
+          </div>
+          <div
+            className="flex items-center gap-1.5 mt-2 pt-2"
+            style={{ borderTop: "1px solid #1a2744" }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
+              style={{ background: "#22c55e" }}
+            />
+            <span className="text-xs" style={{ color: "#334155" }}>
+              Diperbarui tiap 5 menit
             </span>
           </div>
         </div>

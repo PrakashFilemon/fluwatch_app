@@ -130,6 +130,71 @@ function SkeletonRow({ cols }) {
   ));
 }
 
+// ── Modal Konfirmasi (pengganti confirm() native) ─────────────────────────────
+function ModalKonfirmasi({ judul, pesan, labelOk = "Hapus", onOk, onBatal }) {
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl overflow-hidden"
+        style={{
+          background: "#0d1627",
+          border: "1px solid #450a0a",
+          boxShadow: "0 24px 48px rgba(0,0,0,0.7)",
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3 px-5 pt-5 pb-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+            style={{ background: "#450a0a" }}
+          >
+            🗑️
+          </div>
+          <div>
+            <p className="text-sm font-bold" style={{ color: "#f1f5f9" }}>
+              {judul}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>
+              Tindakan ini tidak dapat dibatalkan
+            </p>
+          </div>
+        </div>
+
+        {/* Pesan */}
+        <div className="px-5 pb-4">
+          <p className="text-sm leading-relaxed" style={{ color: "#94a3b8" }}>
+            {pesan}
+          </p>
+        </div>
+
+        {/* Tombol aksi */}
+        <div
+          className="flex gap-2 px-5 py-4"
+          style={{ borderTop: "1px solid #1e293b" }}
+        >
+          <button
+            onClick={onBatal}
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition hover:opacity-80"
+            style={{ background: "#1e293b", color: "#94a3b8" }}
+          >
+            Batal
+          </button>
+          <button
+            onClick={onOk}
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold transition hover:opacity-80"
+            style={{ background: "#dc2626", color: "#fff" }}
+          >
+            {labelOk}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Login Wall ────────────────────────────────────────────────────────────────
 function LoginWall({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -282,20 +347,28 @@ function LoginWall({ onLogin }) {
 
 // ── Tab Pengguna ──────────────────────────────────────────────────────────────
 function TabPengguna({ adminId }) {
-  const [data, setData] = useState(null);
-  const [halaman, setHalaman] = useState(1);
-  const [cari, setCari] = useState("");
-  const [cariDebounced, setCariDebounced] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [data,      setData]      = useState(null);
+  const [halaman,   setHalaman]   = useState(1);
+  const [cari,      setCari]      = useState("");
+  const [cariAktif, setCariAktif] = useState("");
+  const [loading,   setLoading]   = useState(false);
+  const [konfirmasi, setKonfirmasi] = useState(null); // { judul, pesan, onOk }
 
-  // Debounce: kirim request 400ms setelah user berhenti mengetik
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCariDebounced(cari);
-      setHalaman(1);
-    }, 1000);
-    return () => clearTimeout(timer);
+  // Jalankan pencarian: update cariAktif & reset halaman
+  const jalankanCari = useCallback(() => {
+    setCariAktif(cari.trim());
+    setHalaman(1);
   }, [cari]);
+
+  // Reset pencarian saat input dikosongkan
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setCari(val);
+    if (val === "") {
+      setCariAktif("");
+      setHalaman(1);
+    }
+  };
 
   const muat = useCallback(async () => {
     setLoading(true);
@@ -303,7 +376,7 @@ function TabPengguna({ adminId }) {
       const res = await adminPengguna({
         halaman,
         per_halaman: PER_HAL,
-        cari: cariDebounced,
+        cari: cariAktif,
       });
       setData(res);
     } catch (err) {
@@ -311,7 +384,7 @@ function TabPengguna({ adminId }) {
     } finally {
       setLoading(false);
     }
-  }, [halaman, cariDebounced]);
+  }, [halaman, cariAktif]);
 
   useEffect(() => {
     muat();
@@ -337,53 +410,74 @@ function TabPengguna({ adminId }) {
     }
   };
 
-  const hapus = async (id, username) => {
-    if (
-      !confirm(
-        `Yakin hapus pengguna "${username}"? Tindakan ini tidak bisa dibatalkan.`,
-      )
-    )
-      return;
-    try {
-      await adminHapusPengguna(id);
-      toast.success("Pengguna berhasil dihapus");
-      muat();
-    } catch (err) {
-      toast.error(err.message);
-    }
+  const hapus = (id, username) => {
+    setKonfirmasi({
+      judul: "Hapus Pengguna",
+      pesan: `Akun "${username}" akan dihapus permanen beserta seluruh datanya.`,
+      onOk: async () => {
+        setKonfirmasi(null);
+        try {
+          await adminHapusPengguna(id);
+          toast.success("Pengguna berhasil dihapus");
+          muat();
+        } catch (err) {
+          toast.error(err.message);
+        }
+      },
+    });
   };
 
   return (
+    <>
+      {konfirmasi && (
+        <ModalKonfirmasi
+          judul={konfirmasi.judul}
+          pesan={konfirmasi.pesan}
+          onOk={konfirmasi.onOk}
+          onBatal={() => setKonfirmasi(null)}
+        />
+      )}
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex gap-3 items-center">
-        <div className="relative flex-1 max-w-sm">
-          <span
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
-            style={{ color: "#475569" }}
-          >
-            🔍
-          </span>
-          <input
-            value={cari}
-            onChange={(e) => setCari(e.target.value)}
-            placeholder="Cari username atau email..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none transition"
-            style={{
-              background: "#111827",
-              border: "1px solid #1e293b",
-              color: "#e2e8f0",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-            onBlur={(e) => (e.target.style.borderColor = "#1e293b")}
-          />
+      <div className="flex gap-3 items-center flex-wrap">
+        {/* Input + tombol Cari */}
+        <div className="flex flex-1 max-w-sm gap-2">
+          <div className="relative flex-1">
+            <span
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
+              style={{ color: "#475569" }}
+            >
+              🔍
+            </span>
+            <input
+              value={cari}
+              onChange={handleChange}
+              onKeyDown={(e) => e.key === "Enter" && jalankanCari()}
+              placeholder="Cari username atau email..."
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none transition"
+              style={{
+                background: "#111827",
+                border: `1px solid ${cariAktif ? "#3b82f6" : "#1e293b"}`,
+                color: "#e2e8f0",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+              onBlur={(e) =>
+                (e.target.style.borderColor = cariAktif ? "#3b82f6" : "#1e293b")
+              }
+            />
+          </div>
+          <Btn onClick={jalankanCari} variant="default">
+            Cari
+          </Btn>
         </div>
         <Btn onClick={muat} variant="ghost">
           Muat Ulang
         </Btn>
         {data && (
           <span className="text-sm font-semibold" style={{ color: "#64748b" }}>
-            {data.total} pengguna
+            {cariAktif
+              ? `${data.total} hasil untuk "${cariAktif}"`
+              : `${data.total} pengguna`}
           </span>
         )}
       </div>
@@ -540,6 +634,7 @@ function TabPengguna({ adminId }) {
         />
       )}
     </div>
+    </>
   );
 }
 
@@ -571,7 +666,6 @@ function ModalDetailLaporan({ laporan, onTutup, onHapus }) {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)" }}
-      onClick={(e) => e.target === e.currentTarget && onTutup()}
     >
       <div
         className="w-full max-w-2xl rounded-2xl overflow-hidden"
@@ -904,6 +998,7 @@ function TabLaporan() {
   const [jam, setJam] = useState("");
   const [loading, setLoading] = useState(false);
   const [detailLaporan, setDetailLaporan] = useState(null);
+  const [konfirmasi, setKonfirmasi] = useState(null);
 
   const muat = useCallback(async () => {
     setLoading(true);
@@ -923,23 +1018,34 @@ function TabLaporan() {
     muat();
   }, [muat]);
 
-  const hapus = async (id) => {
-    if (
-      !confirm("Yakin hapus laporan ini? Tindakan ini tidak bisa dibatalkan.")
-    )
-      return;
-    try {
-      await adminHapusLaporan(id);
-      toast.success("Laporan berhasil dihapus");
-      setDetailLaporan(null);
-      muat();
-    } catch (err) {
-      toast.error(err.message);
-    }
+  const hapus = (id) => {
+    setKonfirmasi({
+      judul: "Hapus Laporan",
+      pesan: "Data laporan gejala ini akan dihapus permanen dari sistem.",
+      onOk: async () => {
+        setKonfirmasi(null);
+        try {
+          await adminHapusLaporan(id);
+          toast.success("Laporan berhasil dihapus");
+          setDetailLaporan(null);
+          muat();
+        } catch (err) {
+          toast.error(err.message);
+        }
+      },
+    });
   };
 
   return (
     <>
+      {konfirmasi && (
+        <ModalKonfirmasi
+          judul={konfirmasi.judul}
+          pesan={konfirmasi.pesan}
+          onOk={konfirmasi.onOk}
+          onBatal={() => setKonfirmasi(null)}
+        />
+      )}
       {detailLaporan && (
         <ModalDetailLaporan
           laporan={detailLaporan}
