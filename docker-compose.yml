@@ -2,48 +2,56 @@ services:
   # ── Database ────────────────────────────────────────────
   db:
     image: postgres:15
-    container_name: postgres_db
+    container_name: fluwatch_db
     environment:
       POSTGRES_DB: fluwatch_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432" # hapus di production
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d fluwatch_db"]
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - internal
 
   # ── Backend Flask ───────────────────────────────────────
   backend:
     build: ./backend
     container_name: fluwatch_backend
     environment:
-      DATABASE_URL: postgresql://postgres:admin@db:5432/fluwatch_db
-      SECRET_KEY: ganti-dengan-kunci-rahasia-production
-      JWT_SECRET_KEY: ganti-dengan-jwt-secret-production
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@fluwatch_db:5432/fluwatch_db
+      SECRET_KEY: ${SECRET_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       AI_MODEL: ${AI_MODEL:-stepfun/step-3.5-flash:free}
       APP_URL: https://fluwatch.skrz-indonesia.com
       FRONTEND_URL: https://fluwatch.skrz-indonesia.com
       FLASK_DEBUG: "false"
-    ports:
-      - "8001:8000" # host nginx proxy ke port 8001
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - internal
+      - app-network   # nginx bisa akses via nama container
 
-  # ── Frontend React (static via nginx) ──────────────────
+  # ── Frontend React ──────────────────────────────────────
   frontend:
     build: ./frontend
     container_name: fluwatch_frontend
-    ports:
-      - "3001:80" # host nginx proxy ke port 3001
     depends_on:
       - backend
+    networks:
+      - app-network   # nginx bisa akses via nama container
+
+networks:
+  internal:
+    driver: bridge
+  app-network:
+    external: true
+    name: docker_app-network   # join network yang sama dengan skrz-nginx
 
 volumes:
   postgres_data:

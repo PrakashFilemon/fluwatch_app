@@ -118,3 +118,7 @@ docker-compose.override.yml
 # ─── Backup ────────────────────────────────────────────────
 *.bak
 *.orig
+
+# ─── Lainnya ───────────────────────────────────────────────
+nginx 
+database
