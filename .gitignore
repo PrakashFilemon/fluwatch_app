@@ -114,11 +114,11 @@ celerybeat.pid
 
 # ─── Docker ────────────────────────────────────────────────
 docker-compose.override.yml
-
+docker-compose.yml
 # ─── Backup ────────────────────────────────────────────────
 *.bak
 *.orig
 
 # ─── Lainnya ───────────────────────────────────────────────
-nginx 
-database
+nginx/
+database/
