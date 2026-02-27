@@ -20,6 +20,15 @@ body:has(#admin-root) #admin-root {
   overflow: visible;
 }
 
+/* Landing page — override overflow agar bisa scroll */
+body:has(.landing-scroll-unlock) {
+  overflow: auto;
+}
+body:has(.landing-scroll-unlock) #root {
+  height: auto;
+  overflow: visible;
+}
+
 body {
   font-family: "Inter", system-ui, sans-serif;
   background: #080d1a;

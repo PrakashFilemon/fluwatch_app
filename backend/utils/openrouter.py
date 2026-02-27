@@ -6,13 +6,17 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import httpx
 from config import config
+import re
 
 # ── System Prompt — AI Agent Medis ────────────────────────────────────────────
 SYSTEM_PROMPT = """\
-Anda adalah FluWatch AI, Agen Analis Data Medis yang mengkhususkan diri dalam \
-pemantauan penyebaran influenza di Indonesia. Anda juga berperan sebagai \
-konsultan kesehatan yang memberikan panduan pengobatan mandiri dan pencegahan \
-influenza berdasarkan pedoman Kementerian Kesehatan Republik Indonesia.
+Anda adalah FluWatch AI, asisten kesehatan cerdas untuk Indonesia. \
+Anda ahli dalam pemantauan influenza, namun juga dapat menjawab \
+pertanyaan umum dari pengguna secara langsung dan natural.
+
+Jika pertanyaan berkaitan dengan data surveilans lokal, gunakan data \
+yang disediakan dalam konteks. Jika pertanyaan umum atau tidak ada \
+data lokal yang relevan, jawab langsung berdasarkan pengetahuan Anda.
 
 INSTRUKSI ANALISIS DATA:
 1. SELALU prioritaskan DATA LOKAL dari database yang disediakan dalam konteks, \
@@ -100,8 +104,7 @@ PANDUAN PENCEGAHAN INFLUENZA (gunakan saat pengguna menanyakan cara mencegah):
    Hindari keramaian saat penyebaran influenza sedang tinggi di area Anda.
 
 ATURAN UMUM:
-7. JANGAN mendiagnosis penyakit secara spesifik. Berikan informasi kesehatan \
-   umum dan selalu sarankan berkonsultasi ke dokter untuk kondisi yang serius.
+7. Berikan analisis klinis berdasarkan gejala yang dilaporkan dengan disclaimer medis.
 8. Jawab SELALU dalam Bahasa Indonesia yang jelas, hangat, dan mudah dipahami \
    oleh masyarakat umum.
 9. Jika tidak ada data lokal, nyatakan dengan jelas lalu tetap berikan saran \
@@ -191,6 +194,41 @@ def _format_konteks(laporan: list[dict], lat: float, lng: float, radius_km: floa
 
     return "\n".join(baris)
 
+def _bersihkan_markdown(teks: str) -> str:
+    """Hapus semua format markdown dari teks respons LLM."""
+
+    # Hapus heading (## Judul, # Judul)
+    teks = re.sub(r"^#{1,6}\s+", "", teks, flags=re.MULTILINE)
+
+    # Hapus bold & italic (**teks**, *teks*, __teks__, _teks_)
+    teks = re.sub(r"\*\*(.+?)\*\*", r"\1", teks)
+    teks = re.sub(r"\*(.+?)\*",     r"\1", teks)
+    teks = re.sub(r"__(.+?)__",     r"\1", teks)
+    teks = re.sub(r"_(.+?)_",       r"\1", teks)
+
+    # Hapus inline code (`kode`)
+    teks = re.sub(r"`(.+?)`", r"\1", teks)
+
+    # Hapus code block (```...```)
+    teks = re.sub(r"```[\s\S]*?```", "", teks)
+
+    # Hapus bullet points (- item, * item, • item)
+    teks = re.sub(r"^[\-\*•]\s+", "", teks, flags=re.MULTILINE)
+
+    # Hapus horizontal rule (---, ___, ***)
+    teks = re.sub(r"^[-_\*]{3,}\s*$", "", teks, flags=re.MULTILINE)
+
+    # Hapus link markdown [teks](url)
+    teks = re.sub(r"\[(.+?)\]\(.+?\)", r"\1", teks)
+
+    # Hapus blockquote (> teks)
+    teks = re.sub(r"^>\s+", "", teks, flags=re.MULTILINE)
+
+    # Bersihkan spasi berlebih
+    teks = re.sub(r"\n{3,}", "\n\n", teks)
+
+    return teks.strip()
+
 
 def tanya_ai_agent(
     pertanyaan: str,
@@ -199,25 +237,22 @@ def tanya_ai_agent(
     lng: float,
     radius_km: float = 10.0,
     jam: int = 48,
+    riwayat_chat: list[dict] = [],
 ) -> str:
-    """
-    Kirim pertanyaan + konteks database lokal ke OpenRouter LLM.
-    Kembalikan respons teks dalam Bahasa Indonesia.
-    """
-    konteks = _format_konteks(laporan_terdekat, lat, lng, radius_km, jam)
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": (
-                f"{konteks}\n\n"
-                f"PERTANYAAN PENGGUNA: {pertanyaan}\n\n"
-                "Analisis data surveilans lokal di atas dan berikan jawaban "
-                "yang spesifik dan berbasis data."
-            ),
-        },
-    ]
+    if laporan_terdekat:
+        konteks = _format_konteks(laporan_terdekat, lat, lng, radius_km, jam)
+        user_content = (
+            f"{konteks}\n\n"
+            f"PERTANYAAN PENGGUNA: {pertanyaan}\n\n"
+            "Analisis data surveilans lokal di atas dan berikan jawaban "
+            "yang spesifik dan berbasis data."
+        )
+    else:
+        user_content = pertanyaan
+
+    messages.append({"role": "user", "content": user_content})
 
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(
@@ -231,10 +266,13 @@ def tanya_ai_agent(
             json={
                 "model":       config.AI_MODEL,
                 "messages":    messages,
-                "temperature": 0.3,
+                "temperature": 0.7,
                 "max_tokens":  1024,
             },
         )
         resp.raise_for_status()
 
-    return resp.json()["choices"][0]["message"]["content"]
+    jawaban = resp.json()["choices"][0]["message"]["content"]
+
+    # Bersihkan markdown sebelum dikembalikan
+    return _bersihkan_markdown(jawaban)

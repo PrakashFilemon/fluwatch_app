@@ -7,7 +7,6 @@ import {
   adminHapusPengguna,
   adminLaporan,
   adminHapusLaporan,
-  masukAPI,
 } from "../services/api";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -195,155 +194,6 @@ function ModalKonfirmasi({ judul, pesan, labelOk = "Hapus", onOk, onBatal }) {
   );
 }
 
-// ── Login Wall ────────────────────────────────────────────────────────────────
-function LoginWall({ onLogin }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const kirim = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const data = await masukAPI({ email, password });
-      if (data.pengguna?.role !== "admin") {
-        toast.error("Akun Anda tidak memiliki hak akses admin.");
-        return;
-      }
-      localStorage.setItem("fluwatch_token", data.token);
-      onLogin(data.pengguna);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: "linear-gradient(135deg,#060b18 0%,#0d1627 100%)" }}
-    >
-      {/* Background glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle,#3b82f6,transparent)" }}
-        />
-      </div>
-
-      <div className="relative w-full max-w-md">
-        {/* Card */}
-        <div
-          className="rounded-2xl p-8"
-          style={{
-            background: "#0d1627",
-            border: "1px solid #1e3a5f",
-            boxShadow: "0 25px 50px rgba(0,0,0,0.6)",
-          }}
-        >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4"
-              style={{
-                background: "linear-gradient(135deg,#f97316,#ef4444)",
-                boxShadow: "0 8px 24px rgba(239,68,68,0.4)",
-              }}
-            >
-              🦠
-            </div>
-            <h1 className="text-2xl font-bold" style={{ color: "#f1f5f9" }}>
-              FluWatch Admin
-            </h1>
-            <p className="text-sm mt-1" style={{ color: "#64748b" }}>
-              Masuk dengan akun administrator
-            </p>
-          </div>
-
-          <form onSubmit={kirim} className="space-y-4">
-            <div>
-              <label
-                className="block text-sm font-semibold mb-2"
-                style={{ color: "#cbd5e1" }}
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="admin@fluwatch.id"
-                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition"
-                style={{
-                  background: "#111827",
-                  border: "1px solid #1e3a5f",
-                  color: "#f1f5f9",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-                onBlur={(e) => (e.target.style.borderColor = "#1e3a5f")}
-              />
-            </div>
-            <div>
-              <label
-                className="block text-sm font-semibold mb-2"
-                style={{ color: "#cbd5e1" }}
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition"
-                style={{
-                  background: "#111827",
-                  border: "1px solid #1e3a5f",
-                  color: "#f1f5f9",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-                onBlur={(e) => (e.target.style.borderColor = "#1e3a5f")}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl text-sm font-bold transition mt-2"
-              style={{
-                background: loading
-                  ? "#1e3a5f"
-                  : "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                color: "#fff",
-                boxShadow: loading ? "none" : "0 4px 16px rgba(37,99,235,0.4)",
-              }}
-            >
-              {loading ? "Memverifikasi..." : "Masuk ke Panel Admin"}
-            </button>
-          </form>
-
-          <div
-            className="mt-6 pt-5 text-center"
-            style={{ borderTop: "1px solid #1e293b" }}
-          >
-            <a
-              href="/"
-              className="text-sm transition"
-              style={{ color: "#475569" }}
-              onMouseOver={(e) => (e.target.style.color = "#94a3b8")}
-              onMouseOut={(e) => (e.target.style.color = "#475569")}
-            >
-              ← Kembali ke Aplikasi
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ── Tab Pengguna ──────────────────────────────────────────────────────────────
 function TabPengguna({ adminId }) {
@@ -1296,10 +1146,7 @@ function TabLaporan() {
 // ── AdminApp ──────────────────────────────────────────────────────────────────
 export default function AdminApp() {
   const { pengguna, isAdmin, loading, logout } = useAuth();
-  const [localAdmin, setLocalAdmin] = useState(null);
   const [tab, setTab] = useState("pengguna");
-
-  const adminAktif = isAdmin ? pengguna : localAdmin;
 
   if (loading) {
     return (
@@ -1318,8 +1165,9 @@ export default function AdminApp() {
     );
   }
 
-  if (!adminAktif) {
-    return <LoginWall onLogin={setLocalAdmin} />;
+  if (!isAdmin) {
+    window.location.href = "/";
+    return null;
   }
 
   const TABS = [
@@ -1374,13 +1222,13 @@ export default function AdminApp() {
                 className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{ background: "#1e3a5f", color: "#93c5fd" }}
               >
-                {adminAktif.username[0].toUpperCase()}
+                {pengguna.username[0].toUpperCase()}
               </div>
               <span
                 className="text-sm font-medium"
                 style={{ color: "#cbd5e1" }}
               >
-                {adminAktif.username}
+                {pengguna.username}
               </span>
               <span
                 className="text-xs px-1.5 py-0.5 rounded"
@@ -1403,7 +1251,7 @@ export default function AdminApp() {
             <button
               onClick={() => {
                 logout();
-                setLocalAdmin(null);
+                window.location.href = "/";
               }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition"
               style={{
@@ -1456,7 +1304,7 @@ export default function AdminApp() {
           </p>
         </div>
 
-        {tab === "pengguna" && <TabPengguna adminId={adminAktif.id} />}
+        {tab === "pengguna" && <TabPengguna adminId={pengguna.id} />}
         {tab === "laporan" && <TabLaporan />}
       </div>
     </div>

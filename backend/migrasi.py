@@ -56,6 +56,17 @@ MIGRASI = [
     CREATE INDEX IF NOT EXISTS idx_laporan_user_id
     ON laporan_influenza (user_id);
     """,
+
+    # Tambah kolom reset password ke tabel pengguna
+    """
+    ALTER TABLE pengguna
+    ADD COLUMN IF NOT EXISTS reset_token VARCHAR(128) DEFAULT NULL UNIQUE;
+    """,
+
+    """
+    ALTER TABLE pengguna
+    ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ DEFAULT NULL;
+    """,
 ]
 
 

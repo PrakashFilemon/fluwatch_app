@@ -323,6 +323,7 @@ export default function PetaHeatmap({
   const [loading, setLoading] = useState(true);
   const [sudahFit, setSudahFit] = useState(false);
   const [layer, setLayer] = useState("keduanya"); // "panas" | "titik" | "keduanya"
+  const [legendExpanded, setLegendExpanded] = useState(false);
 
   const pusatPeta = lokasi ? [lokasi.lat, lokasi.lng] : [-6.2615, 106.8106];
 
@@ -450,102 +451,131 @@ export default function PetaHeatmap({
         </div>
       </div>
 
-      {/* ════ LEGENDA — Kiri bawah ════ */}
-      <div
-        className="absolute z-[999] rounded-xl overflow-hidden"
-        style={{
-          bottom: 12,
-          left: 12,
-          background: "rgba(8,13,26,0.88)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid #1a2744",
-          minWidth: 160,
-        }}
-      >
-        <div className="px-3 pt-2.5 pb-1">
-          <p
-            className="text-xs font-bold uppercase tracking-widest mb-2"
-            style={{ color: "#475569" }}
-          >
-            Legenda Risiko
-          </p>
-
-          {/* Gradient bar */}
-          <div className="rounded overflow-hidden mb-2" style={{ height: 8 }}>
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                background:
-                  "linear-gradient(90deg, #22c55e, #facc15, #f97316, #ef4444)",
-              }}
-            />
-          </div>
-          <div
-            className="flex justify-between text-xs mb-2"
-            style={{ color: "#475569" }}
-          >
-            <span>Aman</span>
-            <span>Sedang</span>
-            <span>Kritis</span>
-          </div>
-
-          {/* Item legenda */}
-          {[
-            { warna: "#ef4444", label: "Kritis  (≥ 9)" },
-            { warna: "#f97316", label: "Tinggi  (7–8)" },
-            { warna: "#eab308", label: "Sedang  (5–6)" },
-            { warna: "#22c55e", label: "Rendah  (≤ 4)" },
-          ].map(({ warna, label }) => (
-            <div key={label} className="flex items-center gap-2 mb-1">
-              <span
-                className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ background: warna, boxShadow: `0 0 4px ${warna}88` }}
-              />
-              <span className="text-xs" style={{ color: "#94a3b8" }}>
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Counter */}
+      {/* ════ LEGENDA — Kiri bawah (collapsible) ════ */}
+      {legendExpanded ? (
         <div
-          className="px-3 py-2 mt-1"
-          style={{ borderTop: "1px solid #1a2744" }}
+          className="absolute z-[999] rounded-xl overflow-hidden"
+          style={{
+            bottom: 12,
+            left: 12,
+            background: "rgba(8,13,26,0.88)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid #1a2744",
+            minWidth: 160,
+          }}
         >
-          <div className="flex justify-between text-xs">
-            <span style={{ color: "#475569" }}>Total laporan</span>
-            <span className="font-bold text-white">{jumlah}</span>
-          </div>
-          {jumlahBaru > 0 && (
-            <div className="flex justify-between text-xs mt-0.5">
-              <span style={{ color: "#475569" }}>Terbaru (&lt;2j)</span>
-              <span className="font-bold" style={{ color: "#ef4444" }}>
-                {jumlahBaru} baru
-              </span>
+          <div className="px-3 pt-2.5 pb-1">
+            {/* Header dengan tombol tutup */}
+            <div className="flex items-center justify-between mb-2">
+              <p
+                className="text-xs font-bold uppercase tracking-widest"
+                style={{ color: "#475569" }}
+              >
+                Legenda Risiko
+              </p>
+              <button
+                onClick={() => setLegendExpanded(false)}
+                className="text-xs leading-none rounded px-1 py-0.5 transition hover:bg-white/10"
+                style={{ color: "#475569" }}
+                title="Sembunyikan legenda"
+              >
+                ✕
+              </button>
             </div>
-          )}
-          <div className="flex justify-between text-xs mt-0.5">
-            <span style={{ color: "#475569" }}>Jendela waktu</span>
-            <span className="font-bold" style={{ color: "#64748b" }}>
-              {jendela}h
-            </span>
+
+            {/* Gradient bar */}
+            <div className="rounded overflow-hidden mb-2" style={{ height: 8 }}>
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  background:
+                    "linear-gradient(90deg, #22c55e, #facc15, #f97316, #ef4444)",
+                }}
+              />
+            </div>
+            <div
+              className="flex justify-between text-xs mb-2"
+              style={{ color: "#475569" }}
+            >
+              <span>Aman</span>
+              <span>Sedang</span>
+              <span>Kritis</span>
+            </div>
+
+            {/* Item legenda */}
+            {[
+              { warna: "#ef4444", label: "Kritis  (≥ 9)" },
+              { warna: "#f97316", label: "Tinggi  (7–8)" },
+              { warna: "#eab308", label: "Sedang  (5–6)" },
+              { warna: "#22c55e", label: "Rendah  (≤ 4)" },
+            ].map(({ warna, label }) => (
+              <div key={label} className="flex items-center gap-2 mb-1">
+                <span
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ background: warna, boxShadow: `0 0 4px ${warna}88` }}
+                />
+                <span className="text-xs" style={{ color: "#94a3b8" }}>
+                  {label}
+                </span>
+              </div>
+            ))}
           </div>
+
+          {/* Counter */}
           <div
-            className="flex items-center gap-1.5 mt-2 pt-2"
+            className="px-3 py-2 mt-1"
             style={{ borderTop: "1px solid #1a2744" }}
           >
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
-              style={{ background: "#22c55e" }}
-            />
-            <span className="text-xs" style={{ color: "#334155" }}>
-              Diperbarui tiap 5 menit
-            </span>
+            <div className="flex justify-between text-xs">
+              <span style={{ color: "#475569" }}>Total laporan</span>
+              <span className="font-bold text-white">{jumlah}</span>
+            </div>
+            {jumlahBaru > 0 && (
+              <div className="flex justify-between text-xs mt-0.5">
+                <span style={{ color: "#475569" }}>Terbaru (&lt;2j)</span>
+                <span className="font-bold" style={{ color: "#ef4444" }}>
+                  {jumlahBaru} baru
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between text-xs mt-0.5">
+              <span style={{ color: "#475569" }}>Jendela waktu</span>
+              <span className="font-bold" style={{ color: "#64748b" }}>
+                {jendela}h
+              </span>
+            </div>
+            <div
+              className="flex items-center gap-1.5 mt-2 pt-2"
+              style={{ borderTop: "1px solid #1a2744" }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
+                style={{ background: "#22c55e" }}
+              />
+              <span className="text-xs" style={{ color: "#334155" }}>
+                Auto 5 mnt
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <button
+          onClick={() => setLegendExpanded(true)}
+          className="absolute z-[999] flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition hover:brightness-125"
+          style={{
+            bottom: 12,
+            left: 12,
+            background: "rgba(8,13,26,0.88)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid #1a2744",
+            color: "#64748b",
+          }}
+          title="Tampilkan legenda"
+        >
+          📊 Legenda ▾
+        </button>
+      )}
 
       {/* ════ FAB — Kanan bawah ════ */}
       <div
@@ -601,7 +631,7 @@ export default function PetaHeatmap({
       {/* ════ PETA LEAFLET ════ */}
       <MapContainer
         center={pusatPeta}
-        zoom={12}
+        zoom={10}
         scrollWheelZoom
         style={{ width: "100%", height: "100%" }}
         zoomControl={false}

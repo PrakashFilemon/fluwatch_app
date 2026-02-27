@@ -2,7 +2,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function LoginModal({ onTutup, onBukaRegister, onSelesai }) {
+export default function LoginModal({ onTutup, onBukaRegister, onBukaLupaPassword, onSelesai }) {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -70,9 +70,19 @@ export default function LoginModal({ onTutup, onBukaRegister, onSelesai }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1.5">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-gray-400">
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => { onTutup(); onBukaLupaPassword?.(); }}
+                className="text-xs transition"
+                style={{ color: "#f97316" }}
+              >
+                Lupa password?
+              </button>
+            </div>
             <input
               type="password"
               value={password}

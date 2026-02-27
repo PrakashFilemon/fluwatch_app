@@ -1,57 +1,73 @@
 services:
-  # ── Database ────────────────────────────────────────────
+  # ── Database ────────────────────────────────────────────────
   db:
     image: postgres:15
     container_name: fluwatch_db
+    env_file:
+      - ./backend/.env
     environment:
       POSTGRES_DB: fluwatch_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # POSTGRES_PASSWORD: fluwatch_local
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/skema.sql:/docker-entrypoint-initdb.d/01_skema.sql:ro
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d fluwatch_db"]
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
-      - internal
+      - fluwatch-local
 
-  # ── Backend Flask ───────────────────────────────────────
+  # ── Backend Flask / Gunicorn ─────────────────────────────────
   backend:
     build: ./backend
     container_name: fluwatch_backend
+    env_file:
+      - ./backend/.env
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@fluwatch_db:5432/fluwatch_db
-      SECRET_KEY: ${SECRET_KEY}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-      AI_MODEL: ${AI_MODEL:-stepfun/step-3.5-flash:free}
-      APP_URL: https://fluwatch.skrz-indonesia.com
-      FRONTEND_URL: https://fluwatch.skrz-indonesia.com
+      # DATABASE_URL: postgresql://postgres:fluwatch_local@db:5432/fluwatch_db
+      # SECRET_KEY: ${SECRET_KEY:-local-dev-secret-ganti-di-production}
+      # JWT_SECRET_KEY: ${JWT_SECRET_KEY:-local-jwt-secret-ganti-di-production}
+      # OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      # AI_MODEL: ${AI_MODEL:-stepfun/step-3.5-flash:free}
+      APP_URL: http://localhost:3000
+      FRONTEND_URL: http://localhost:3000
       FLASK_DEBUG: "false"
+      # RADIUS_KM_DEFAULT: ${RADIUS_KM_DEFAULT:-10}
+      # JAM_DEFAULT: ${JAM_DEFAULT:-48}
+      # MAIL_SERVER: ${MAIL_SERVER:-smtp.gmail.com}
+      # MAIL_PORT: ${MAIL_PORT:-587}
+      # MAIL_USERNAME: ${MAIL_USERNAME:-}
+      # MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      # MAIL_FROM: ${MAIL_FROM:-}
+    ports:
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - internal
-      - app-network   # nginx bisa akses via nama container
+      - fluwatch-local
 
-  # ── Frontend React ──────────────────────────────────────
+  # ── Frontend React (Nginx) ───────────────────────────────────
   frontend:
     build: ./frontend
     container_name: fluwatch_frontend
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "3000:80"
     depends_on:
       - backend
     networks:
-      - app-network   # nginx bisa akses via nama container
+      - fluwatch-local
 
 networks:
-  internal:
+  fluwatch-local:
     driver: bridge
-  app-network:
-    external: true
-    name: docker_app-network   # join network yang sama dengan skrz-nginx
 
 volumes:
   postgres_data:

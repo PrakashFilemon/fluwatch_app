@@ -37,9 +37,14 @@ export const ambilDataPeta  = (params) => http.get("/peta", { params }).then(r =
 export const tanyaAI        = (data)   => http.post("/analisis", data).then(r => r.data);
 
 // ── Auth ──────────────────────────────────────────────────────────────────
-export const daftarAPI = (data) => http.post("/auth/daftar", data).then(r => r.data);
-export const masukAPI  = (data) => http.post("/auth/masuk",  data).then(r => r.data);
-export const sayaAPI   = ()     => http.get("/auth/saya").then(r => r.data);
+export const daftarAPI        = (data) => http.post("/auth/daftar",          data).then(r => r.data);
+export const masukAPI         = (data) => http.post("/auth/masuk",           data).then(r => r.data);
+export const sayaAPI          = ()     => http.get("/auth/saya").then(r => r.data);
+export const lupaPasswordAPI  = (data) => http.post("/auth/lupa-password",  data).then(r => r.data);
+export const resetPasswordAPI = (data) => http.post("/auth/reset-password", data).then(r => r.data);
+
+/** Ambil riwayat laporan milik pengguna yang sedang login */
+export const riwayatSayaAPI = () => http.get("/laporan/saya").then(r => r.data);
 
 // ── Admin ─────────────────────────────────────────────────────────────────
 export const adminPengguna      = (params) => http.get("/admin/pengguna", { params }).then(r => r.data);

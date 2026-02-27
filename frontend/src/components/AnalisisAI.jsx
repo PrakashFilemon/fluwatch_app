@@ -35,7 +35,9 @@ function GelembungAI({ teks }) {
       <IkonRobot />
       <div className="bg-gray-800 border border-gray-700 rounded-2xl rounded-bl-sm px-4 py-3 max-w-full text-sm text-gray-100 leading-relaxed">
         {teks.split("\n").map((baris, i) => (
-          <p key={i} className={baris === "" ? "mt-2" : ""}>{baris}</p>
+          <p key={i} className={baris === "" ? "mt-2" : ""}>
+            {baris}
+          </p>
         ))}
       </div>
     </div>
@@ -48,7 +50,7 @@ function IndikatorTik() {
       <IkonRobot />
       <div className="bg-gray-800 border border-gray-700 rounded-2xl rounded-bl-sm px-4 py-3">
         <div className="flex gap-1">
-          {[0, 1, 2].map(i => (
+          {[0, 1, 2].map((i) => (
             <div
               key={i}
               className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
@@ -63,11 +65,11 @@ function IndikatorTik() {
 
 export default function AnalisisAI({ lokasi }) {
   const [pertanyaan, setPertanyaan] = useState("");
-  const [hasil,      setHasil]      = useState(null);   // { jawaban, jumlah_kasus, radius_km }
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState(null);
-  const [radius,     setRadius]     = useState(10);
-  const [riwayat,    setRiwayat]    = useState([]);     // riwayat tanya-jawab
+  const [hasil, setHasil] = useState(null); // { jawaban, jumlah_kasus, radius_km }
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [radius, setRadius] = useState(10);
+  const [riwayat, setRiwayat] = useState([]); // riwayat tanya-jawab
 
   const kirim = async (teks) => {
     const q = (teks || pertanyaan).trim();
@@ -83,30 +85,36 @@ export default function AnalisisAI({ lokasi }) {
     setPertanyaan("");
 
     // Tambah pertanyaan ke riwayat
-    setRiwayat(r => [...r, { tipe: "pengguna", teks: q }]);
+    setRiwayat((r) => [...r, { tipe: "pengguna", teks: q }]);
 
     try {
       const data = await tanyaAI({
-        lat:        lokasi.lat,
-        lng:        lokasi.lng,
+        lat: lokasi.lat,
+        lng: lokasi.lng,
         pertanyaan: q,
-        radius_km:  radius,
-        jam:        48,
+        radius_km: radius,
+        jam: 48,
       });
 
       setHasil(data);
-      setRiwayat(r => [...r, {
-        tipe:        "ai",
-        teks:        data.jawaban,
-        jumlah:      data.jumlah_kasus,
-        radius_km:   data.radius_km,
-      }]);
+      setRiwayat((r) => [
+        ...r,
+        {
+          tipe: "ai",
+          teks: data.jawaban,
+          jumlah: data.jumlah_kasus,
+          radius_km: data.radius_km,
+        },
+      ]);
     } catch (err) {
       setError(err.message || "Terjadi kesalahan pada layanan AI.");
-      setRiwayat(r => [...r, {
-        tipe: "ai",
-        teks: `❌ Kesalahan: ${err.message}`,
-      }]);
+      setRiwayat((r) => [
+        ...r,
+        {
+          tipe: "ai",
+          teks: `❌ Kesalahan: ${err.message}`,
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -114,7 +122,6 @@ export default function AnalisisAI({ lokasi }) {
 
   return (
     <div className="flex flex-col h-full bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
-
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-700 bg-gray-800/50 flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -130,11 +137,13 @@ export default function AnalisisAI({ lokasi }) {
             <span>Radius:</span>
             <select
               value={radius}
-              onChange={e => setRadius(+e.target.value)}
+              onChange={(e) => setRadius(+e.target.value)}
               className="bg-gray-700 border border-gray-600 rounded px-1.5 py-1 text-gray-200 text-xs focus:outline-none"
             >
-              {RADIUS_PILIHAN.map(r => (
-                <option key={r} value={r}>{r} km</option>
+              {RADIUS_PILIHAN.map((r) => (
+                <option key={r} value={r}>
+                  {r} km
+                </option>
               ))}
             </select>
           </div>
@@ -143,19 +152,20 @@ export default function AnalisisAI({ lokasi }) {
 
       {/* Area percakapan */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
-
         {/* Pesan sambutan */}
         {riwayat.length === 0 && (
-          <GelembungAI teks={
-            "Halo! Saya FluWatch AI, agen analis penyebaran influenza Anda.\n\n" +
-            "Saya akan menjawab pertanyaan Anda berdasarkan data laporan nyata dari " +
-            "database surveilans lokal — bukan hanya pengetahuan umum.\n\n" +
-            "Pilih pertanyaan di bawah atau ketik pertanyaan Anda sendiri."
-          } />
+          <GelembungAI
+            teks={
+              "Halo! Saya FluWatch AI, agen analis penyebaran influenza Anda.\n\n" +
+              "Saya akan menjawab pertanyaan Anda berdasarkan data laporan nyata dari " +
+              "database surveilans lokal — bukan hanya pengetahuan umum.\n\n" +
+              "Pilih pertanyaan di bawah atau ketik pertanyaan Anda sendiri."
+            }
+          />
         )}
 
         {/* Riwayat percakapan */}
-        {riwayat.map((item, i) => (
+        {riwayat.map((item, i) =>
           item.tipe === "pengguna" ? (
             <div key={i} className="flex justify-end anim-fade-up">
               <div className="bg-blue-600 text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] text-sm">
@@ -176,8 +186,8 @@ export default function AnalisisAI({ lokasi }) {
                 </div>
               )}
             </div>
-          )
-        ))}
+          ),
+        )}
 
         {loading && <IndikatorTik />}
 
@@ -194,7 +204,7 @@ export default function AnalisisAI({ lokasi }) {
           <div>
             <p className="text-xs text-gray-500 mb-1.5">📍 Surveilans lokal:</p>
             <div className="flex flex-col gap-1">
-              {PERTANYAAN_SURVEILANS.slice(0, 2).map(q => (
+              {PERTANYAAN_SURVEILANS.slice(0, 2).map((q) => (
                 <button
                   key={q}
                   onClick={() => kirim(q)}
@@ -206,9 +216,11 @@ export default function AnalisisAI({ lokasi }) {
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1.5">💊 Pengobatan & Pencegahan:</p>
+            <p className="text-xs text-gray-500 mb-1.5">
+              💊 Pengobatan & Pencegahan:
+            </p>
             <div className="flex flex-col gap-1">
-              {PERTANYAAN_KESEHATAN.slice(0, 2).map(q => (
+              {PERTANYAAN_KESEHATAN.slice(0, 2).map((q) => (
                 <button
                   key={q}
                   onClick={() => kirim(q)}
@@ -233,8 +245,8 @@ export default function AnalisisAI({ lokasi }) {
           <input
             type="text"
             value={pertanyaan}
-            onChange={e => setPertanyaan(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && kirim()}
+            onChange={(e) => setPertanyaan(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && kirim()}
             placeholder="Tanya tentang penyebaran flu di area Anda..."
             className="flex-1 bg-gray-800 border border-gray-700 focus:border-blue-500 rounded-xl px-3 py-2.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none transition"
           />

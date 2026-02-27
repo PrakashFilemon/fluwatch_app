@@ -28,6 +28,13 @@ class Config:
     JWT_SECRET_KEY: str             = os.getenv("JWT_SECRET_KEY", "jwt-dev-secret")
     JWT_ACCESS_TOKEN_EXPIRES_HOURS: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_HOURS", "24"))
 
+    # ── Email (untuk reset password) ─────────────────────────────────────
+    MAIL_SERVER:   str = os.getenv("MAIL_SERVER",   "smtp.gmail.com")
+    MAIL_PORT:     int = int(os.getenv("MAIL_PORT", "587"))
+    MAIL_USERNAME: str = os.getenv("MAIL_USERNAME", "")
+    MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD", "")
+    MAIL_FROM:     str = os.getenv("MAIL_FROM",     "")
+
 
 
 config = Config()

@@ -2,7 +2,8 @@
 POST /api/analisis  — AI Agent analisis penyebaran berbasis data lokal
 """
 from datetime import datetime, timedelta, timezone
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
+from flask_jwt_extended import jwt_required
 from extensions import limiter
 from config import config
 from models import LaporanInfluenza
@@ -13,6 +14,7 @@ ai_bp = Blueprint("ai", __name__, url_prefix="/api/analisis")
 
 
 @ai_bp.post("")
+@jwt_required()
 @limiter.limit("5/minute;20/hour")    # AI mahal — batasi lebih ketat
 def analisis():
     """

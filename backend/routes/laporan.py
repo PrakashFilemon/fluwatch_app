@@ -137,6 +137,22 @@ def kirim_laporan():
     }), 201
 
 
+@laporan_bp.get("/saya")
+@jwt_required()
+@limiter.limit("30/minute")
+def laporan_saya():
+    """Ambil riwayat laporan milik pengguna yang sedang login. Limit 20 terbaru."""
+    user_id = get_jwt_identity()
+    rows = (
+        LaporanInfluenza.query
+        .filter_by(user_id=user_id)
+        .order_by(LaporanInfluenza.created_at.desc())
+        .limit(20)
+        .all()
+    )
+    return jsonify({"jumlah": len(rows), "laporan": [r.to_dict() for r in rows]})
+
+
 @laporan_bp.get("")
 @limiter.limit("60/minute")
 def ambil_laporan():

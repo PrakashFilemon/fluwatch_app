@@ -37,14 +37,16 @@ def _hitung_skor(data: dict) -> int:
 class Pengguna(db.Model):
     __tablename__ = "pengguna"
 
-    id            = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    username      = Column(String(50), unique=True, nullable=False)
-    email         = Column(String(255), unique=True, nullable=False)
-    password_hash = Column(String(256), nullable=False)
-    role          = Column(String(20), nullable=False, default="pengguna")
-    is_active     = Column(Boolean, nullable=False, default=True)
-    created_at    = Column(DateTime(timezone=True), nullable=False,
-                           default=lambda: datetime.now(timezone.utc))
+    id                   = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username             = Column(String(50), unique=True, nullable=False)
+    email                = Column(String(255), unique=True, nullable=False)
+    password_hash        = Column(String(256), nullable=False)
+    role                 = Column(String(20), nullable=False, default="pengguna")
+    is_active            = Column(Boolean, nullable=False, default=True)
+    created_at           = Column(DateTime(timezone=True), nullable=False,
+                                  default=lambda: datetime.now(timezone.utc))
+    reset_token          = Column(String(128), nullable=True, unique=True)
+    reset_token_expires  = Column(DateTime(timezone=True), nullable=True)
 
     laporan = relationship("LaporanInfluenza", back_populates="pengguna")
 
