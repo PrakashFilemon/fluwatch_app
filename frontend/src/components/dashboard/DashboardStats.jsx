@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { ambilStatistik } from "../services/api";
+import { ambilStatistik } from "../../services/api";
 
 const LABEL_GEJALA = {
   demam: "Demam & Menggigil",

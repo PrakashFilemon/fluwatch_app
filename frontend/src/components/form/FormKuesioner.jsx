@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { kirimLaporan } from "../services/api";
+import { kirimLaporan } from "../../services/api";
 
 /* ── Daftar pertanyaan gejala ──────────────────────────── */
 const PERTANYAAN_GEJALA = [

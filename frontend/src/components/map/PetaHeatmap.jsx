@@ -19,7 +19,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { ambilDataPeta, ambilStatistik } from "../services/api";
+import { ambilDataPeta, ambilStatistik } from "../../services/api";
 
 /* ── Warna marker berdasarkan keparahan ───────────────── */
 function warnaKeparahan(k) {

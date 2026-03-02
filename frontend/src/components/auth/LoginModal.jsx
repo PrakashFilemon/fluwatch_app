@@ -1,12 +1,13 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuth } from "../contexts/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function LoginModal({ onTutup, onBukaRegister, onBukaLupaPassword, onSelesai }) {
-  const { login } = useAuth();
-  const [email, setEmail] = useState("");
+  const { login, loginGoogle } = useAuth();
+  const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading,  setLoading]  = useState(false);
 
   const kirim = async (e) => {
     e.preventDefault();
@@ -27,13 +28,28 @@ export default function LoginModal({ onTutup, onBukaRegister, onBukaLupaPassword
     }
   };
 
-  const focusBorder  = (e) => (e.target.style.borderColor = "#3A8E85");
-  const blurBorder   = (e) => (e.target.style.borderColor = "rgba(58,142,133,0.25)");
+  const handleGoogle = async (credentialResponse) => {
+    try {
+      const pengguna = await loginGoogle(credentialResponse.credential);
+      toast.success("Selamat datang!");
+      if (pengguna?.role === "admin") {
+        window.location.href = "/management";
+        return;
+      }
+      onSelesai?.();
+      onTutup();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const focusBorder = (e) => (e.target.style.borderColor = "#3A8E85");
+  const blurBorder  = (e) => (e.target.style.borderColor = "rgba(58,142,133,0.25)");
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(15,23,42,0.55)" }}
     >
       <div
         className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
@@ -57,12 +73,8 @@ export default function LoginModal({ onTutup, onBukaRegister, onBukaLupaPassword
                 <span className="text-lg">🦠</span>
               </div>
               <div>
-                <h2 className="text-base font-bold" style={{ color: "#1F2937" }}>
-                  Masuk
-                </h2>
-                <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-                  Masuk untuk melaporkan gejala
-                </p>
+                <h2 className="text-base font-bold" style={{ color: "#1F2937" }}>Masuk</h2>
+                <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>Masuk untuk melaporkan gejala</p>
               </div>
             </div>
             <button
@@ -79,9 +91,7 @@ export default function LoginModal({ onTutup, onBukaRegister, onBukaLupaPassword
           {/* Form */}
           <form onSubmit={kirim} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: "#374151" }}>
-                Email
-              </label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: "#374151" }}>Email</label>
               <input
                 type="email"
                 value={email}
@@ -91,19 +101,13 @@ export default function LoginModal({ onTutup, onBukaRegister, onBukaLupaPassword
                 onFocus={focusBorder}
                 onBlur={blurBorder}
                 className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors"
-                style={{
-                  background: "#F9FAFB",
-                  border: "1px solid rgba(58,142,133,0.25)",
-                  color: "#1F2937",
-                }}
+                style={{ background: "#F9FAFB", border: "1px solid rgba(58,142,133,0.25)", color: "#1F2937" }}
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold" style={{ color: "#374151" }}>
-                  Password
-                </label>
+                <label className="text-xs font-semibold" style={{ color: "#374151" }}>Password</label>
                 <button
                   type="button"
                   onClick={() => { onTutup(); onBukaLupaPassword?.(); }}
@@ -124,11 +128,7 @@ export default function LoginModal({ onTutup, onBukaRegister, onBukaLupaPassword
                 onFocus={focusBorder}
                 onBlur={blurBorder}
                 className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors"
-                style={{
-                  background: "#F9FAFB",
-                  border: "1px solid rgba(58,142,133,0.25)",
-                  color: "#1F2937",
-                }}
+                style={{ background: "#F9FAFB", border: "1px solid rgba(58,142,133,0.25)", color: "#1F2937" }}
               />
             </div>
 
@@ -145,6 +145,29 @@ export default function LoginModal({ onTutup, onBukaRegister, onBukaLupaPassword
               {loading ? "Memproses..." : "Masuk"}
             </button>
           </form>
+
+          {/* Divider + Google Login — hanya tampil jika client ID tersedia */}
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px" style={{ background: "rgba(58,142,133,0.15)" }} />
+                <span className="text-xs" style={{ color: "#9CA3AF" }}>atau</span>
+                <div className="flex-1 h-px" style={{ background: "rgba(58,142,133,0.15)" }} />
+              </div>
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogle}
+                  onError={() => toast.error("Login Google gagal")}
+                  theme="outline"
+                  shape="rectangular"
+                  size="large"
+                  text="signin_with"
+                  locale="id"
+                  width="320"
+                />
+              </div>
+            </>
+          )}
 
           {/* Switch */}
           <p className="text-center text-xs" style={{ color: "#9CA3AF" }}>

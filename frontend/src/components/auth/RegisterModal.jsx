@@ -1,24 +1,19 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuth } from "../contexts/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function RegisterModal({ onTutup, onBukaMasuk, onSelesai }) {
-  const { daftar } = useAuth();
-  const [form, setForm] = useState({ username: "", email: "", password: "", konfirmasi: "" });
+  const { daftar, loginGoogle } = useAuth();
+  const [form,    setForm]    = useState({ username: "", email: "", password: "", konfirmasi: "" });
   const [loading, setLoading] = useState(false);
 
   const ubah = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const kirim = async (e) => {
     e.preventDefault();
-    if (form.password !== form.konfirmasi) {
-      toast.error("Password dan konfirmasi tidak cocok");
-      return;
-    }
-    if (form.password.length < 8) {
-      toast.error("Password minimal 8 karakter");
-      return;
-    }
+    if (form.password !== form.konfirmasi) { toast.error("Password dan konfirmasi tidak cocok"); return; }
+    if (form.password.length < 8) { toast.error("Password minimal 8 karakter"); return; }
     setLoading(true);
     try {
       await daftar(form.username, form.email, form.password);
@@ -29,6 +24,21 @@ export default function RegisterModal({ onTutup, onBukaMasuk, onSelesai }) {
       toast.error(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogle = async (credentialResponse) => {
+    try {
+      const pengguna = await loginGoogle(credentialResponse.credential);
+      toast.success("Akun berhasil dibuat!");
+      if (pengguna?.role === "admin") {
+        window.location.href = "/management";
+        return;
+      }
+      onSelesai?.();
+      onTutup();
+    } catch (err) {
+      toast.error(err.message);
     }
   };
 
@@ -45,7 +55,7 @@ export default function RegisterModal({ onTutup, onBukaMasuk, onSelesai }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(15,23,42,0.55)" }}
     >
       <div
         className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
@@ -69,12 +79,8 @@ export default function RegisterModal({ onTutup, onBukaMasuk, onSelesai }) {
                 <span className="text-lg">🦠</span>
               </div>
               <div>
-                <h2 className="text-base font-bold" style={{ color: "#1F2937" }}>
-                  Daftar Akun
-                </h2>
-                <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-                  Buat akun untuk melaporkan gejala
-                </p>
+                <h2 className="text-base font-bold" style={{ color: "#1F2937" }}>Daftar Akun</h2>
+                <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>Buat akun untuk melaporkan gejala</p>
               </div>
             </div>
             <button
@@ -92,9 +98,7 @@ export default function RegisterModal({ onTutup, onBukaMasuk, onSelesai }) {
           <form onSubmit={kirim} className="space-y-3">
             {fields.map(({ name, label, type, placeholder }) => (
               <div key={name}>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: "#374151" }}>
-                  {label}
-                </label>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: "#374151" }}>{label}</label>
                 <input
                   type={type}
                   name={name}
@@ -105,11 +109,7 @@ export default function RegisterModal({ onTutup, onBukaMasuk, onSelesai }) {
                   onFocus={focusBorder}
                   onBlur={blurBorder}
                   className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors"
-                  style={{
-                    background: "#F9FAFB",
-                    border: "1px solid rgba(58,142,133,0.25)",
-                    color: "#1F2937",
-                  }}
+                  style={{ background: "#F9FAFB", border: "1px solid rgba(58,142,133,0.25)", color: "#1F2937" }}
                 />
               </div>
             ))}
@@ -127,6 +127,29 @@ export default function RegisterModal({ onTutup, onBukaMasuk, onSelesai }) {
               {loading ? "Memproses..." : "Buat Akun"}
             </button>
           </form>
+
+          {/* Divider + Google Register — hanya tampil jika client ID tersedia */}
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px" style={{ background: "rgba(58,142,133,0.15)" }} />
+                <span className="text-xs" style={{ color: "#9CA3AF" }}>atau</span>
+                <div className="flex-1 h-px" style={{ background: "rgba(58,142,133,0.15)" }} />
+              </div>
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogle}
+                  onError={() => toast.error("Daftar dengan Google gagal")}
+                  theme="outline"
+                  shape="rectangular"
+                  size="large"
+                  text="signup_with"
+                  locale="id"
+                  width="320"
+                />
+              </div>
+            </>
+          )}
 
           {/* Switch */}
           <p className="text-center text-xs" style={{ color: "#9CA3AF" }}>

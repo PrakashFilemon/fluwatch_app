@@ -35,6 +35,9 @@ class Config:
     MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD", "")
     MAIL_FROM:     str = os.getenv("MAIL_FROM",     "")
 
+    # ── Google OAuth ──────────────────────────────────────────────────────
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+
 
 
 config = Config()

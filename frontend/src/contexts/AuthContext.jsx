@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { daftarAPI, masukAPI, sayaAPI } from "../services/api";
+import { daftarAPI, masukAPI, sayaAPI, googleLoginAPI } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -49,6 +49,14 @@ export function AuthProvider({ children }) {
     return data.pengguna;
   };
 
+  const loginGoogle = async (credential) => {
+    const data = await googleLoginAPI({ credential });
+    localStorage.setItem("fluwatch_token", data.token);
+    sessionStorage.setItem("fluwatch_user", JSON.stringify(data.pengguna));
+    setPengguna(data.pengguna);
+    return data.pengguna;
+  };
+
   const logout = () => {
     localStorage.removeItem("fluwatch_token");
     sessionStorage.removeItem("fluwatch_user");
@@ -62,6 +70,7 @@ export function AuthProvider({ children }) {
       isAdmin:    pengguna?.role === "admin",
       loading,
       login,
+      loginGoogle,
       logout,
       daftar,
     }}>

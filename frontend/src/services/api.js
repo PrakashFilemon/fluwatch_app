@@ -16,39 +16,60 @@ http.interceptors.request.use((config) => {
 // Normalkan pesan error
 http.interceptors.response.use(
   (r) => r,
-  (err) => Promise.reject(
-    new Error(err?.response?.data?.pesan || err?.message || "Terjadi kesalahan")
-  )
+  (err) =>
+    Promise.reject(
+      new Error(
+        err?.response?.data?.pesan || err?.message || "Terjadi kesalahan",
+      ),
+    ),
 );
 
 /** Kirim laporan gejala baru */
-export const kirimLaporan   = (data)   => http.post("/laporan", data).then(r => r.data);
+export const kirimLaporan = (data) =>
+  http.post("/laporan", data).then((r) => r.data);
 
 /** Ambil statistik agregat. Opsional: { lat, lng, radius_km } untuk data area. */
-export const ambilStatistik = (params) => http.get("/laporan/statistik", { params }).then(r => r.data);
+export const ambilStatistik = (params) =>
+  http.get("/laporan/statistik", { params }).then((r) => r.data);
 
 /** Ambil data titik heatmap */
-export const ambilDataPeta  = (params) => http.get("/peta", { params }).then(r => r.data);
+export const ambilDataPeta = (params) =>
+  http.get("/peta", { params }).then((r) => r.data);
 
 /** Tanya AI Agent */
-export const tanyaAI        = (data)   => http.post("/analisis", data).then(r => r.data);
+export const tanyaAI = (data) =>
+  http.post("/analisis", data).then((r) => r.data);
 
 // ── Auth ──────────────────────────────────────────────────────────────────
-export const daftarAPI        = (data) => http.post("/auth/daftar",          data).then(r => r.data);
-export const masukAPI         = (data) => http.post("/auth/masuk",           data).then(r => r.data);
-export const sayaAPI          = ()     => http.get("/auth/saya").then(r => r.data);
-export const lupaPasswordAPI  = (data) => http.post("/auth/lupa-password",  data).then(r => r.data);
-export const resetPasswordAPI = (data) => http.post("/auth/reset-password", data).then(r => r.data);
+export const daftarAPI = (data) =>
+  http.post("/auth/daftar", data).then((r) => r.data);
+export const masukAPI = (data) =>
+  http.post("/auth/masuk", data).then((r) => r.data);
+export const sayaAPI = () => http.get("/auth/saya").then((r) => r.data);
+export const googleLoginAPI = (data) =>
+  http.post("/auth/google", data).then((r) => r.data);
+export const lupaPasswordAPI = (data) =>
+  http.post("/auth/lupa-password", data).then((r) => r.data);
+export const resetPasswordAPI = (data) =>
+  http.post("/auth/reset-password", data).then((r) => r.data);
 
 /** Ambil riwayat laporan milik pengguna yang sedang login */
-export const riwayatSayaAPI = () => http.get("/laporan/saya").then(r => r.data);
+export const riwayatSayaAPI = () =>
+  http.get("/laporan/saya").then((r) => r.data);
 
 // ── Admin ─────────────────────────────────────────────────────────────────
-export const adminPengguna      = (params) => http.get("/admin/pengguna", { params }).then(r => r.data);
-export const adminUbahPengguna  = (id, data) => http.patch(`/admin/pengguna/${id}`, data).then(r => r.data);
-export const adminHapusPengguna = (id)    => http.delete(`/admin/pengguna/${id}`).then(r => r.data);
-export const adminLaporan       = (params) => http.get("/admin/laporan", { params }).then(r => r.data);
-export const adminHapusLaporan  = (id)    => http.delete(`/admin/laporan/${id}`).then(r => r.data);
-export const adminStats         = ()       => http.get("/admin/stats").then(r => r.data);
-export const adminLaporanTrend  = (mode)   => http.get("/admin/laporan/trend", { params: { mode } }).then(r => r.data);
-export const adminAktivitas     = ()       => http.get("/admin/aktivitas").then(r => r.data);
+export const adminPengguna = (params) =>
+  http.get("/admin/pengguna", { params }).then((r) => r.data);
+export const adminUbahPengguna = (id, data) =>
+  http.patch(`/admin/pengguna/${id}`, data).then((r) => r.data);
+export const adminHapusPengguna = (id) =>
+  http.delete(`/admin/pengguna/${id}`).then((r) => r.data);
+export const adminLaporan = (params) =>
+  http.get("/admin/laporan", { params }).then((r) => r.data);
+export const adminHapusLaporan = (id) =>
+  http.delete(`/admin/laporan/${id}`).then((r) => r.data);
+export const adminStats = () => http.get("/admin/stats").then((r) => r.data);
+export const adminLaporanTrend = (mode) =>
+  http.get("/admin/laporan/trend", { params: { mode } }).then((r) => r.data);
+export const adminAktivitas = () =>
+  http.get("/admin/aktivitas").then((r) => r.data);

@@ -9,6 +9,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import func
 from extensions import limiter
 from models import LaporanInfluenza, Pengguna, _hitung_skor, db
+from utils.haversine import hitung_jarak, kotak_batas
 from utils.security import hash_ip
 
 laporan_bp = Blueprint("laporan", __name__, url_prefix="/api/laporan")
@@ -184,7 +185,6 @@ def statistik():
         radius_km       — radius pencarian area (default: 10)
     Jika lat & lng diberikan, respons menyertakan kasus_area dan pengguna_area.
     """
-    from math import radians, cos
     now = datetime.now(timezone.utc)
 
     # ── Parameter lokasi opsional ─────────────────────────
@@ -202,37 +202,27 @@ def statistik():
 
     # ── Hitung kasus area jika lokasi tersedia ────────────
     if ada_lokasi:
-        from math import radians, cos, sin, sqrt, atan2
-        delta     = radius_km / 111.0
-        lng_delta = delta / max(cos(radians(lat)), 0.001)
+        kotak = kotak_batas(lat, lng, radius_km)
         cutoff_area = now - timedelta(hours=48)
 
         # Bounding-box pre-filter
         q_area = LaporanInfluenza.query.filter(
-            LaporanInfluenza.lat  >= lat - delta,
-            LaporanInfluenza.lat  <= lat + delta,
-            LaporanInfluenza.lng  >= lng - lng_delta,
-            LaporanInfluenza.lng  <= lng + lng_delta,
+            LaporanInfluenza.lat  >= kotak["min_lat"],
+            LaporanInfluenza.lat  <= kotak["max_lat"],
+            LaporanInfluenza.lng  >= kotak["min_lng"],
+            LaporanInfluenza.lng  <= kotak["max_lng"],
         )
         q_area_48j = q_area.filter(LaporanInfluenza.timestamp >= cutoff_area)
-
-        # Haversine exact filter di Python
-        def haversine_km(la1, lo1, la2, lo2):
-            R = 6371
-            dLat = radians(la2 - la1)
-            dLon = radians(lo2 - lo1)
-            a = sin(dLat/2)**2 + cos(radians(la1)) * cos(radians(la2)) * sin(dLon/2)**2
-            return R * 2 * atan2(sqrt(a), sqrt(1 - a))
 
         rows_area    = q_area.all()
         rows_area48j = q_area_48j.all()
 
-        kasus_area     = sum(1 for r in rows_area    if haversine_km(lat, lng, float(r.lat), float(r.lng)) <= radius_km)
-        kasus_area_48j = sum(1 for r in rows_area48j if haversine_km(lat, lng, float(r.lat), float(r.lng)) <= radius_km)
+        kasus_area     = sum(1 for r in rows_area    if hitung_jarak(lat, lng, float(r.lat), float(r.lng)) <= radius_km)
+        kasus_area_48j = sum(1 for r in rows_area48j if hitung_jarak(lat, lng, float(r.lat), float(r.lng)) <= radius_km)
 
         # Jumlah pengguna unik yang melapor di area (48 jam)
         pengguna_area = len({r.user_id for r in rows_area48j
-                             if haversine_km(lat, lng, float(r.lat), float(r.lng)) <= radius_km and r.user_id})
+                             if hitung_jarak(lat, lng, float(r.lat), float(r.lng)) <= radius_km and r.user_id})
 
     def hitung(jam):
         return LaporanInfluenza.query.filter(

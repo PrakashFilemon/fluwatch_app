@@ -3,7 +3,7 @@
  * Pengguna memilih radius, lalu AI menganalisis kasus terdekat dari DB.
  */
 import { useState } from "react";
-import { tanyaAI } from "../services/api";
+import { tanyaAI } from "../../services/api";
 
 const PERTANYAAN_SURVEILANS = [
   "Apakah ada wabah influenza di dekat saya?",

@@ -40,7 +40,8 @@ class Pengguna(db.Model):
     id                   = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username             = Column(String(50), unique=True, nullable=False)
     email                = Column(String(255), unique=True, nullable=False)
-    password_hash        = Column(String(256), nullable=False)
+    password_hash        = Column(String(256), nullable=True)   # nullable untuk user Google OAuth
+    google_id            = Column(String(255), unique=True, nullable=True)
     role                 = Column(String(20), nullable=False, default="pengguna")
     is_active            = Column(Boolean, nullable=False, default=True)
     created_at           = Column(DateTime(timezone=True), nullable=False,
@@ -54,12 +55,15 @@ class Pengguna(db.Model):
         CheckConstraint("role IN ('pengguna','admin')", name="ck_pengguna_role"),
         Index("idx_pengguna_email",    "email"),
         Index("idx_pengguna_username", "username"),
+        Index("idx_pengguna_google",   "google_id"),
     )
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
     def cek_password(self, password: str) -> bool:
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self) -> dict:

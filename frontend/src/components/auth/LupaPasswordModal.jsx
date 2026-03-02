@@ -1,6 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { lupaPasswordAPI } from "../services/api";
+import { lupaPasswordAPI } from "../../services/api";
 
 export default function LupaPasswordModal({ onTutup, onBukaLogin }) {
   const [email,    setEmail]    = useState("");
@@ -23,7 +23,7 @@ export default function LupaPasswordModal({ onTutup, onBukaLogin }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(15,23,42,0.55)" }}
     >
       <div
         className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
