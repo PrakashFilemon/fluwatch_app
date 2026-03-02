@@ -24,9 +24,6 @@ http.interceptors.response.use(
 /** Kirim laporan gejala baru */
 export const kirimLaporan   = (data)   => http.post("/laporan", data).then(r => r.data);
 
-/** Ambil daftar laporan terbaru */
-export const ambilLaporan   = (params) => http.get("/laporan", { params }).then(r => r.data);
-
 /** Ambil statistik agregat. Opsional: { lat, lng, radius_km } untuk data area. */
 export const ambilStatistik = (params) => http.get("/laporan/statistik", { params }).then(r => r.data);
 
@@ -52,3 +49,6 @@ export const adminUbahPengguna  = (id, data) => http.patch(`/admin/pengguna/${id
 export const adminHapusPengguna = (id)    => http.delete(`/admin/pengguna/${id}`).then(r => r.data);
 export const adminLaporan       = (params) => http.get("/admin/laporan", { params }).then(r => r.data);
 export const adminHapusLaporan  = (id)    => http.delete(`/admin/laporan/${id}`).then(r => r.data);
+export const adminStats         = ()       => http.get("/admin/stats").then(r => r.data);
+export const adminLaporanTrend  = (mode)   => http.get("/admin/laporan/trend", { params: { mode } }).then(r => r.data);
+export const adminAktivitas     = ()       => http.get("/admin/aktivitas").then(r => r.data);

@@ -1,0 +1,124 @@
+# ============================================================
+# FluWatch.AI — .gitignore
+# ============================================================
+
+# ─── Rahasia & Konfigurasi Sensitif ────────────────────────
+.env
+.env.local
+.env.production
+.env.staging
+*.secret
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# ─── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+.env/
+
+# Distribusi & Build Python
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+MANIFEST
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ─── Node.js / Frontend ────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build output
+frontend/dist/
+frontend/build/
+dist/
+build/
+
+# Cache Vite
+.vite/
+frontend/.vite/
+
+# ─── Database ──────────────────────────────────────────────
+*.sqlite3
+*.sqlite
+*.db
+*.sql.bak
+database/dumps/
+database/backups/
+
+# ─── IDE & Editor ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Jetbrains
+*.iml
+.idea/
+
+# ─── Log & Temporary Files ─────────────────────────────────
+*.log
+logs/
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+
+# ─── OS ────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── Deployment ────────────────────────────────────────────
+*.pyc
+gunicorn.pid
+celerybeat-schedule
+celerybeat.pid
+
+# ─── Docker ────────────────────────────────────────────────
+docker-compose.override.yml
+docker-compose.yml
+# ─── Backup ────────────────────────────────────────────────
+*.bak
+*.orig
+
+# ─── Lainnya ───────────────────────────────────────────────
+nginx/
+database/

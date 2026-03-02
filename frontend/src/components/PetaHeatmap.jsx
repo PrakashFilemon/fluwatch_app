@@ -138,9 +138,9 @@ function ZoomControl() {
           title={b.title}
           className="w-9 h-9 rounded-lg flex items-center justify-center text-lg font-bold shadow-lg transition hover:scale-105 active:scale-95"
           style={{
-            background: "#0d1627",
-            border: "1px solid #1e3a5f",
-            color: "#93c5fd",
+            background: "#ffffff",
+            border: "1px solid rgba(58,142,133,0.25)",
+            color: "#3A8E85",
           }}
         >
           {b.label}
@@ -162,9 +162,9 @@ function TombolPusat({ posisi }) {
       style={{
         bottom: "12px",
         right: "12px",
-        background: "#0d1627",
-        border: "1px solid #1e3a5f",
-        color: "#3b82f6",
+        background: "#ffffff",
+        border: "1px solid rgba(58,142,133,0.25)",
+        color: "#3A8E85",
       }}
     >
       ◎
@@ -181,7 +181,7 @@ function MarkerPengguna({ posisi }) {
       radius={8}
       pathOptions={{
         color: "#ffffff",
-        fillColor: "#3b82f6",
+        fillColor: "#3A8E85",
         fillOpacity: 1,
         weight: 3,
       }}
@@ -377,77 +377,99 @@ export default function PetaHeatmap({
 
   return (
     <div className="relative w-full h-full">
-      {/* ════ OVERLAY ATAS — Status + Kontrol Layer ════ */}
-      <div className="absolute top-3 left-3 right-3 z-[9] flex items-stretch gap-2">
-        {/* Status wilayah */}
+      {/* ════ OVERLAY ATAS — Status + Kontrol Layer (unified card) ════ */}
+      <div className="absolute top-3 left-3 right-3 z-[9]">
         <div
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl flex-1 pointer-events-none"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl"
           style={{
-            background: "rgba(8,13,26,0.88)",
-            backdropFilter: "blur(10px)",
-            border: `1px solid ${indeksWarna}44`,
+            background: "rgba(216,232,230,0.92)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(58,142,133,0.25)",
+            boxShadow: "0 2px 16px rgba(58,142,133,0.12)",
           }}
         >
+          {/* Dot indikator */}
           <span
-            className="w-3 h-3 rounded-full flex-shrink-0 animate-pulse"
-            style={{
-              background: indeksWarna,
-              boxShadow: `0 0 8px ${indeksWarna}`,
-            }}
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0 animate-pulse"
+            style={{ background: indeksWarna, boxShadow: `0 0 6px ${indeksWarna}` }}
           />
-          <div className="min-w-0">
+
+          {/* Status teks */}
+          <div className="flex-1 min-w-0 pointer-events-none">
             <p
-              className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "#475569" }}
+              className="hidden sm:block text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5"
+              style={{ color: "#5A8A84" }}
             >
               Status Wilayah
             </p>
-            <p className="text-sm font-bold text-white truncate">
+            <p
+              className="text-xs sm:text-sm font-bold truncate leading-tight"
+              style={{ color: "#1a2e2c" }}
+            >
               {statusTeks}
             </p>
           </div>
-          <div className="ml-auto text-right flex-shrink-0">
+
+          {/* Divider */}
+          <div
+            className="w-px self-stretch flex-shrink-0"
+            style={{ background: "rgba(58,142,133,0.25)" }}
+          />
+
+          {/* Indeks risiko */}
+          <div className="flex-shrink-0 text-right pointer-events-none">
             <p
-              className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "#475569" }}
+              className="hidden sm:block text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5"
+              style={{ color: "#5A8A84" }}
             >
-              Indeks
+              Indeks Risiko
             </p>
-            <p className="text-sm font-bold" style={{ color: indeksWarna }}>
-              {indeksTeks}{" "}
-              <span className="text-xs text-gray-600">({indeks}/10)</span>
+            <p
+              className="text-xs sm:text-sm font-bold leading-tight"
+              style={{ color: indeksWarna }}
+            >
+              {indeksTeks}
+              <span className="text-[10px] font-normal ml-1" style={{ color: "#94a3b8" }}>
+                {indeks}/10
+              </span>
             </p>
           </div>
-        </div>
 
-        {/* Toggle Layer */}
-        <div
-          className="flex gap-1 p-1 rounded-xl"
-          style={{
-            background: "rgba(8,13,26,0.88)",
-            backdropFilter: "blur(10px)",
-            border: "1px solid #1a2744",
-          }}
-        >
-          {[
-            { id: "panas", label: "🔥", title: "Heatmap saja" },
-            { id: "keduanya", label: "◉", title: "Heatmap + Titik" },
-            { id: "titik", label: "⬤", title: "Titik saja" },
-          ].map((l) => (
-            <button
-              key={l.id}
-              onClick={() => setLayer(l.id)}
-              title={l.title}
-              className="px-3 py-1.5 rounded-lg text-sm font-bold transition"
-              style={
-                layer === l.id
-                  ? { background: "#1e3a5f", color: "#93c5fd" }
-                  : { color: "#475569" }
-              }
-            >
-              {l.label}
-            </button>
-          ))}
+          {/* Divider */}
+          <div
+            className="w-px self-stretch flex-shrink-0"
+            style={{ background: "rgba(58,142,133,0.25)" }}
+          />
+
+          {/* Toggle Layer */}
+          <div className="flex gap-0.5 flex-shrink-0">
+            {[
+              { id: "panas", label: "🔥", title: "Heatmap saja" },
+              { id: "keduanya", label: "◉", title: "Heatmap + Titik" },
+              { id: "titik", label: "⬤", title: "Titik saja" },
+            ].map((l) => (
+              <button
+                key={l.id}
+                onClick={() => setLayer(l.id)}
+                title={l.title}
+                className="w-8 h-8 rounded-lg text-sm flex items-center justify-center transition-all"
+                style={
+                  layer === l.id
+                    ? {
+                        background: "#3A8E85",
+                        color: "#fff",
+                        boxShadow: "0 1px 4px rgba(58,142,133,0.35)",
+                      }
+                    : {
+                        background: "rgba(58,142,133,0.10)",
+                        color: "#374151",
+                      }
+                }
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -458,9 +480,10 @@ export default function PetaHeatmap({
           style={{
             bottom: 12,
             left: 12,
-            background: "rgba(8,13,26,0.88)",
+            background: "rgba(255,255,255,0.95)",
             backdropFilter: "blur(10px)",
-            border: "1px solid #1a2744",
+            border: "1px solid rgba(58,142,133,0.15)",
+            boxShadow: "0 2px 12px rgba(58,142,133,0.10)",
             minWidth: 160,
           }}
         >
@@ -469,14 +492,14 @@ export default function PetaHeatmap({
             <div className="flex items-center justify-between mb-2">
               <p
                 className="text-xs font-bold uppercase tracking-widest"
-                style={{ color: "#475569" }}
+                style={{ color: "#64748b" }}
               >
                 Legenda Risiko
               </p>
               <button
                 onClick={() => setLegendExpanded(false)}
-                className="text-xs leading-none rounded px-1 py-0.5 transition hover:bg-white/10"
-                style={{ color: "#475569" }}
+                className="text-xs leading-none rounded px-1 py-0.5 transition hover:bg-teal-50"
+                style={{ color: "#64748b" }}
                 title="Sembunyikan legenda"
               >
                 ✕
@@ -496,7 +519,7 @@ export default function PetaHeatmap({
             </div>
             <div
               className="flex justify-between text-xs mb-2"
-              style={{ color: "#475569" }}
+              style={{ color: "#64748b" }}
             >
               <span>Aman</span>
               <span>Sedang</span>
@@ -515,7 +538,7 @@ export default function PetaHeatmap({
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ background: warna, boxShadow: `0 0 4px ${warna}88` }}
                 />
-                <span className="text-xs" style={{ color: "#94a3b8" }}>
+                <span className="text-xs" style={{ color: "#374151" }}>
                   {label}
                 </span>
               </div>
@@ -525,35 +548,37 @@ export default function PetaHeatmap({
           {/* Counter */}
           <div
             className="px-3 py-2 mt-1"
-            style={{ borderTop: "1px solid #1a2744" }}
+            style={{ borderTop: "1px solid rgba(58,142,133,0.12)" }}
           >
             <div className="flex justify-between text-xs">
-              <span style={{ color: "#475569" }}>Total laporan</span>
-              <span className="font-bold text-white">{jumlah}</span>
+              <span style={{ color: "#64748b" }}>Total laporan</span>
+              <span className="font-bold" style={{ color: "#1a2e2c" }}>
+                {jumlah}
+              </span>
             </div>
             {jumlahBaru > 0 && (
               <div className="flex justify-between text-xs mt-0.5">
-                <span style={{ color: "#475569" }}>Terbaru (&lt;2j)</span>
+                <span style={{ color: "#64748b" }}>Terbaru (&lt;2j)</span>
                 <span className="font-bold" style={{ color: "#ef4444" }}>
                   {jumlahBaru} baru
                 </span>
               </div>
             )}
             <div className="flex justify-between text-xs mt-0.5">
-              <span style={{ color: "#475569" }}>Jendela waktu</span>
-              <span className="font-bold" style={{ color: "#64748b" }}>
+              <span style={{ color: "#64748b" }}>Jendela waktu</span>
+              <span className="font-bold" style={{ color: "#374151" }}>
                 {jendela}h
               </span>
             </div>
             <div
               className="flex items-center gap-1.5 mt-2 pt-2"
-              style={{ borderTop: "1px solid #1a2744" }}
+              style={{ borderTop: "1px solid rgba(58,142,133,0.10)" }}
             >
               <span
                 className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
                 style={{ background: "#22c55e" }}
               />
-              <span className="text-xs" style={{ color: "#334155" }}>
+              <span className="text-xs" style={{ color: "#64748b" }}>
                 Auto 5 mnt
               </span>
             </div>
@@ -562,13 +587,14 @@ export default function PetaHeatmap({
       ) : (
         <button
           onClick={() => setLegendExpanded(true)}
-          className="absolute z-[999] flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition hover:brightness-125"
+          className="absolute z-[999] flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition"
           style={{
             bottom: 12,
             left: 12,
-            background: "rgba(8,13,26,0.88)",
+            background: "rgba(255,255,255,0.95)",
             backdropFilter: "blur(10px)",
-            border: "1px solid #1a2744",
+            border: "1px solid rgba(58,142,133,0.15)",
+            boxShadow: "0 2px 12px rgba(58,142,133,0.08)",
             color: "#64748b",
           }}
           title="Tampilkan legenda"
@@ -587,9 +613,9 @@ export default function PetaHeatmap({
           title="Laporkan Gejala"
           className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold shadow-xl transition hover:scale-110 active:scale-95"
           style={{
-            background: "#dc2626",
+            background: "#3A8E85",
             color: "#fff",
-            boxShadow: "0 4px 15px rgba(220,38,38,0.4)",
+            boxShadow: "0 4px 15px rgba(58,142,133,0.35)",
           }}
         >
           +
@@ -599,10 +625,11 @@ export default function PetaHeatmap({
           title="Analisis AI"
           className="w-10 h-10 rounded-xl flex items-center justify-center text-base shadow-xl transition hover:scale-110 active:scale-95"
           style={{
-            background: "#1e3a5f",
-            border: "1px solid #2d5a8e",
-            color: "#93c5fd",
-            boxShadow: "0 4px 15px rgba(59,130,246,0.2)",
+            background: "rgba(58,142,133,0.10)",
+            border: "1px solid rgba(58,142,133,0.25)",
+            color: "#3A8E85",
+            boxShadow: "0 4px 15px rgba(58,142,133,0.15)",
+            backdropFilter: "blur(4px)",
           }}
         >
           🤖
@@ -614,16 +641,28 @@ export default function PetaHeatmap({
         <div
           className="absolute inset-0 z-[998] flex items-center justify-center"
           style={{
-            background: "rgba(8,13,26,0.5)",
+            background: "rgba(216,232,230,0.75)",
             backdropFilter: "blur(2px)",
           }}
         >
           <div
             className="flex items-center gap-3 px-5 py-3 rounded-xl"
-            style={{ background: "#0d1627", border: "1px solid #1a2744" }}
+            style={{
+              background: "#ffffff",
+              border: "1px solid rgba(58,142,133,0.15)",
+              boxShadow: "0 2px 16px rgba(58,142,133,0.10)",
+            }}
           >
-            <div className="w-4 h-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
-            <span className="text-sm text-gray-300">Memuat data peta...</span>
+            <div
+              className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
+              style={{
+                borderColor: "rgba(58,142,133,0.20)",
+                borderTopColor: "#3A8E85",
+              }}
+            />
+            <span className="text-sm" style={{ color: "#374151" }}>
+              Memuat data peta...
+            </span>
           </div>
         </div>
       )}
@@ -636,9 +675,9 @@ export default function PetaHeatmap({
         style={{ width: "100%", height: "100%" }}
         zoomControl={false}
       >
-        {/* Tile layer — dark CARTO */}
+        {/* Tile layer — CartoDB Positron (light) */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           maxZoom={19}
         />

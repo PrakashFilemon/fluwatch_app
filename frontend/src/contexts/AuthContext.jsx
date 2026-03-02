@@ -12,8 +12,23 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem("fluwatch_token");
     if (!token) { setLoading(false); return; }
 
+    // Gunakan cache user jika tersedia agar tidak perlu API call tambahan
+    const cached = sessionStorage.getItem("fluwatch_user");
+    if (cached) {
+      try {
+        setPengguna(JSON.parse(cached));
+        setLoading(false);
+        return;
+      } catch {
+        sessionStorage.removeItem("fluwatch_user");
+      }
+    }
+
     sayaAPI()
-      .then(data => setPengguna(data.pengguna))
+      .then(data => {
+        setPengguna(data.pengguna);
+        sessionStorage.setItem("fluwatch_user", JSON.stringify(data.pengguna));
+      })
       .catch(() => localStorage.removeItem("fluwatch_token"))
       .finally(() => setLoading(false));
   }, []);
@@ -21,6 +36,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const data = await masukAPI({ email, password });
     localStorage.setItem("fluwatch_token", data.token);
+    sessionStorage.setItem("fluwatch_user", JSON.stringify(data.pengguna));
     setPengguna(data.pengguna);
     return data.pengguna;
   };
@@ -28,12 +44,14 @@ export function AuthProvider({ children }) {
   const daftar = async (username, email, password) => {
     const data = await daftarAPI({ username, email, password });
     localStorage.setItem("fluwatch_token", data.token);
+    sessionStorage.setItem("fluwatch_user", JSON.stringify(data.pengguna));
     setPengguna(data.pengguna);
     return data.pengguna;
   };
 
   const logout = () => {
     localStorage.removeItem("fluwatch_token");
+    sessionStorage.removeItem("fluwatch_user");
     setPengguna(null);
   };
 

@@ -8,22 +8,21 @@ import { tanyaAI } from "../services/api";
 const PERTANYAAN_SURVEILANS = [
   "Apakah ada wabah influenza di dekat saya?",
   "Berapa kasus influenza dalam radius 10km dari saya?",
-  "Apa gejala yang paling banyak dilaporkan di area saya?",
-  "Bagaimana tingkat risiko influenza di lokasi saya saat ini?",
 ];
 
 const PERTANYAAN_KESEHATAN = [
   "Bagaimana cara mengobati influenza di rumah?",
   "Obat apa yang bisa dikonsumsi untuk influenza?",
-  "Apa saja cara mencegah penularan influenza?",
-  "Kapan saya harus ke dokter atau IGD?",
 ];
 
 const RADIUS_PILIHAN = [5, 10, 20, 50];
 
 function IkonRobot() {
   return (
-    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-orange-500 flex items-center justify-center text-sm flex-shrink-0">
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
+      style={{ background: "linear-gradient(135deg,#3A8E85,#006B5F)" }}
+    >
       🦠
     </div>
   );
@@ -33,7 +32,14 @@ function GelembungAI({ teks }) {
   return (
     <div className="flex gap-3 anim-fade-up">
       <IkonRobot />
-      <div className="bg-gray-800 border border-gray-700 rounded-2xl rounded-bl-sm px-4 py-3 max-w-full text-sm text-gray-100 leading-relaxed">
+      <div
+        className="rounded-2xl rounded-bl-sm px-4 py-3 max-w-full text-sm leading-relaxed"
+        style={{
+          background: "#f8fffe",
+          border: "1px solid rgba(58,142,133,0.12)",
+          color: "#374151",
+        }}
+      >
         {teks.split("\n").map((baris, i) => (
           <p key={i} className={baris === "" ? "mt-2" : ""}>
             {baris}
@@ -48,13 +54,16 @@ function IndikatorTik() {
   return (
     <div className="flex gap-3">
       <IkonRobot />
-      <div className="bg-gray-800 border border-gray-700 rounded-2xl rounded-bl-sm px-4 py-3">
+      <div
+        className="rounded-2xl rounded-bl-sm px-4 py-3"
+        style={{ background: "#f0faf9", border: "1px solid rgba(58,142,133,0.15)" }}
+      >
         <div className="flex gap-1">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-              style={{ animationDelay: `${i * 0.15}s` }}
+              className="w-2 h-2 rounded-full animate-bounce"
+              style={{ background: "#3A8E85", animationDelay: `${i * 0.15}s` }}
             />
           ))}
         </div>
@@ -65,7 +74,6 @@ function IndikatorTik() {
 
 export default function AnalisisAI({ lokasi }) {
   const [pertanyaan, setPertanyaan] = useState("");
-  const [hasil, setHasil] = useState(null); // { jawaban, jumlah_kasus, radius_km }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [radius, setRadius] = useState(10);
@@ -96,7 +104,6 @@ export default function AnalisisAI({ lokasi }) {
         jam: 48,
       });
 
-      setHasil(data);
       setRiwayat((r) => [
         ...r,
         {
@@ -121,24 +128,42 @@ export default function AnalisisAI({ lokasi }) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
+    <div
+      className="flex flex-col h-full rounded-2xl overflow-hidden"
+      style={{
+        background: "#ffffff",
+        border: "1px solid rgba(58,142,133,0.15)",
+        boxShadow: "0 2px 16px rgba(58,142,133,0.08)",
+      }}
+    >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-700 bg-gray-800/50 flex-shrink-0">
+      <div
+        className="px-4 py-3 flex-shrink-0"
+        style={{ background: "#f0faf9", borderBottom: "1px solid rgba(58,142,133,0.12)" }}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-sm font-semibold">FluWatch AI Agent</span>
-            <span className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full">
+            <span className="text-sm font-semibold" style={{ color: "#1a2e2c" }}>FluWatch AI Agent</span>
+            <span
+              className="text-xs px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(58,142,133,0.10)", color: "#3A8E85" }}
+            >
               Analis Data Medis
             </span>
           </div>
           {/* Pilihan radius */}
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+          <div className="flex items-center gap-1.5 text-xs" style={{ color: "#64748b" }}>
             <span>Radius:</span>
             <select
               value={radius}
               onChange={(e) => setRadius(+e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded px-1.5 py-1 text-gray-200 text-xs focus:outline-none"
+              className="rounded px-1.5 py-1 text-xs focus:outline-none"
+              style={{
+                background: "#f8fffe",
+                border: "1px solid rgba(58,142,133,0.25)",
+                color: "#374151",
+              }}
             >
               {RADIUS_PILIHAN.map((r) => (
                 <option key={r} value={r}>
@@ -168,7 +193,10 @@ export default function AnalisisAI({ lokasi }) {
         {riwayat.map((item, i) =>
           item.tipe === "pengguna" ? (
             <div key={i} className="flex justify-end anim-fade-up">
-              <div className="bg-blue-600 text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] text-sm">
+              <div
+                className="text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] text-sm"
+                style={{ background: "linear-gradient(135deg,#3A8E85,#006B5F)" }}
+              >
                 {item.teks}
               </div>
             </div>
@@ -177,10 +205,16 @@ export default function AnalisisAI({ lokasi }) {
               <GelembungAI teks={item.teks} />
               {item.jumlah !== undefined && (
                 <div className="flex gap-2 pl-11 text-xs">
-                  <span className="bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-full text-gray-400">
+                  <span
+                    className="px-2.5 py-1 rounded-full"
+                    style={{ background: "#f0faf9", border: "1px solid rgba(58,142,133,0.15)", color: "#64748b" }}
+                  >
                     📍 {item.jumlah} kasus ditemukan
                   </span>
-                  <span className="bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-full text-gray-400">
+                  <span
+                    className="px-2.5 py-1 rounded-full"
+                    style={{ background: "#f0faf9", border: "1px solid rgba(58,142,133,0.15)", color: "#64748b" }}
+                  >
                     🔍 Radius {item.radius_km} km
                   </span>
                 </div>
@@ -192,7 +226,10 @@ export default function AnalisisAI({ lokasi }) {
         {loading && <IndikatorTik />}
 
         {error && !loading && (
-          <p className="text-xs text-red-400 bg-red-950/30 border border-red-800 rounded-lg px-3 py-2">
+          <p
+            className="text-xs rounded-lg px-3 py-2"
+            style={{ color: "#ef4444", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)" }}
+          >
             {error}
           </p>
         )}
@@ -202,13 +239,20 @@ export default function AnalisisAI({ lokasi }) {
       {riwayat.length === 0 && (
         <div className="px-4 pb-2 flex-shrink-0 space-y-2">
           <div>
-            <p className="text-xs text-gray-500 mb-1.5">📍 Surveilans lokal:</p>
-            <div className="flex flex-col gap-1">
-              {PERTANYAAN_SURVEILANS.slice(0, 2).map((q) => (
+            <p className="text-xs mb-1.5" style={{ color: "#64748b" }}>📍 Surveilans lokal:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+              {PERTANYAAN_SURVEILANS.map((q) => (
                 <button
                   key={q}
                   onClick={() => kirim(q)}
-                  className="text-left text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 px-3 py-2 rounded-lg transition"
+                  className="text-left text-xs px-3 py-2 rounded-lg transition"
+                  style={{
+                    background: "rgba(58,142,133,0.06)",
+                    border: "1px solid rgba(58,142,133,0.12)",
+                    color: "#374151",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(58,142,133,0.12)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "rgba(58,142,133,0.06)"}
                 >
                   {q}
                 </button>
@@ -216,15 +260,22 @@ export default function AnalisisAI({ lokasi }) {
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1.5">
+            <p className="text-xs mb-1.5" style={{ color: "#64748b" }}>
               💊 Pengobatan & Pencegahan:
             </p>
-            <div className="flex flex-col gap-1">
-              {PERTANYAAN_KESEHATAN.slice(0, 2).map((q) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+              {PERTANYAAN_KESEHATAN.map((q) => (
                 <button
                   key={q}
                   onClick={() => kirim(q)}
-                  className="text-left text-xs bg-gray-800 hover:bg-blue-900/30 border border-gray-700 hover:border-blue-700 text-gray-300 px-3 py-2 rounded-lg transition"
+                  className="text-left text-xs px-3 py-2 rounded-lg transition"
+                  style={{
+                    background: "rgba(58,142,133,0.06)",
+                    border: "1px solid rgba(58,142,133,0.12)",
+                    color: "#374151",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(58,142,133,0.12)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "rgba(58,142,133,0.06)"}
                 >
                   {q}
                 </button>
@@ -235,30 +286,44 @@ export default function AnalisisAI({ lokasi }) {
       )}
 
       {/* Input */}
-      <div className="px-4 pb-4 pt-2 border-t border-gray-700 flex-shrink-0">
+      <div
+        className="px-4 pb-4 pt-2 flex-shrink-0"
+        style={{ borderTop: "1px solid rgba(58,142,133,0.12)" }}
+      >
         {!lokasi && (
-          <p className="text-xs text-yellow-500 mb-2">
+          <p className="text-xs text-yellow-600 mb-2">
             ⚠️ Izinkan akses lokasi untuk analisis data lokal
           </p>
         )}
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full">
           <input
             type="text"
             value={pertanyaan}
             onChange={(e) => setPertanyaan(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && kirim()}
             placeholder="Tanya tentang penyebaran flu di area Anda..."
-            className="flex-1 bg-gray-800 border border-gray-700 focus:border-blue-500 rounded-xl px-3 py-2.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none transition"
+            className="flex-1 min-w-0 rounded-xl px-3 py-2.5 text-sm focus:outline-none transition"
+            style={{
+              background: "#f8fffe",
+              border: "1px solid rgba(58,142,133,0.25)",
+              color: "#374151",
+            }}
+            onFocus={e => e.target.style.borderColor = "#3A8E85"}
+            onBlur={e => e.target.style.borderColor = "rgba(58,142,133,0.25)"}
           />
           <button
             onClick={() => kirim()}
             disabled={loading || !pertanyaan.trim()}
-            className="bg-red-600 hover:bg-red-500 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 rounded-xl text-sm font-medium transition"
+            className="text-white px-4 rounded-xl text-sm font-medium transition flex-shrink-0"
+            style={{
+              background: loading || !pertanyaan.trim() ? "rgba(58,142,133,0.15)" : "#3A8E85",
+              color: loading || !pertanyaan.trim() ? "#94a3b8" : "#fff",
+            }}
           >
             {loading ? "..." : "Tanya"}
           </button>
         </div>
-        <p className="text-xs text-gray-600 mt-1.5 text-center">
+        <p className="text-xs mt-1.5 text-center" style={{ color: "#94a3b8" }}>
           Jawaban didasarkan pada data surveilans lokal, bukan pengetahuan umum
         </p>
       </div>

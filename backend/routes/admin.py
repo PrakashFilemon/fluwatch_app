@@ -100,14 +100,18 @@ def hapus_pengguna(id):
 
 # ── Laporan ──────────────────────────────────────────────────────────────────
 
+KELOMPOK_USIA_VALID = {"anak", "remaja", "dewasa", "lansia"}
+
 @admin_bp.get("/laporan")
 @admin_required
 def daftar_laporan():
-    """Daftar laporan paginated dengan filter jam & user_id."""
-    halaman  = int(request.args.get("halaman", 1))
-    per_hal  = min(int(request.args.get("per_halaman", 20)), 100)
-    jam      = request.args.get("jam")
-    user_id  = request.args.get("user_id")
+    """Daftar laporan paginated dengan filter jam, user_id, wilayah, kelompok_usia."""
+    halaman      = int(request.args.get("halaman", 1))
+    per_hal      = min(int(request.args.get("per_halaman", 20)), 100)
+    jam          = request.args.get("jam")
+    user_id      = request.args.get("user_id")
+    wilayah      = request.args.get("wilayah", "").strip()
+    kelompok_usia = request.args.get("kelompok_usia", "").strip()
 
     q = LaporanInfluenza.query
     if jam:
@@ -115,6 +119,10 @@ def daftar_laporan():
         q = q.filter(LaporanInfluenza.timestamp >= cutoff)
     if user_id:
         q = q.filter(LaporanInfluenza.user_id == user_id)
+    if wilayah:
+        q = q.filter(LaporanInfluenza.nama_wilayah.ilike(f"%{wilayah}%"))
+    if kelompok_usia and kelompok_usia in KELOMPOK_USIA_VALID:
+        q = q.filter(LaporanInfluenza.kelompok_usia == kelompok_usia)
 
     q     = q.order_by(LaporanInfluenza.timestamp.desc())
     total = q.count()
@@ -139,3 +147,100 @@ def hapus_laporan(id):
     db.session.delete(laporan)
     db.session.commit()
     return jsonify({"pesan": "Laporan berhasil dihapus"}), 200
+
+
+# ── Dashboard Stats ───────────────────────────────────────────────────────────
+
+@admin_bp.get("/stats")
+@admin_required
+def stats_overview():
+    now = datetime.now(timezone.utc)
+    bulan_ini_awal   = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    bulan_lalu_awal  = (bulan_ini_awal - timedelta(days=1)).replace(day=1)
+    minggu_ini_awal  = now - timedelta(days=7)
+    minggu_lalu_awal = now - timedelta(days=14)
+
+    total_users    = Pengguna.query.count()
+    total_laporan  = LaporanInfluenza.query.count()
+    users_bln_ini  = Pengguna.query.filter(Pengguna.created_at >= bulan_ini_awal).count()
+    users_bln_lalu = Pengguna.query.filter(
+        Pengguna.created_at >= bulan_lalu_awal,
+        Pengguna.created_at < bulan_ini_awal
+    ).count()
+    lap_mgg_ini    = LaporanInfluenza.query.filter(LaporanInfluenza.timestamp >= minggu_ini_awal).count()
+    lap_mgg_lalu   = LaporanInfluenza.query.filter(
+        LaporanInfluenza.timestamp >= minggu_lalu_awal,
+        LaporanInfluenza.timestamp < minggu_ini_awal
+    ).count()
+
+    def pct(a, b): return round((a - b) / b * 100, 1) if b else (100.0 if a else 0.0)
+
+    return jsonify({
+        "total_users":   total_users,
+        "total_laporan": total_laporan,
+        "pct_users":     pct(users_bln_ini, users_bln_lalu),
+        "pct_laporan":   pct(lap_mgg_ini, lap_mgg_lalu),
+    })
+
+
+@admin_bp.get("/laporan/trend")
+@admin_required
+def laporan_trend():
+    from sqlalchemy import func, cast, Date
+    mode = request.args.get("mode", "mingguan")
+    now  = datetime.now(timezone.utc)
+
+    if mode == "mingguan":
+        cutoff = now - timedelta(days=6)
+        rows = (db.session.query(
+                    cast(LaporanInfluenza.timestamp, Date).label("hari"),
+                    func.count().label("jumlah"))
+                .filter(LaporanInfluenza.timestamp >= cutoff)
+                .group_by("hari").order_by("hari").all())
+        hasil = {str(r.hari): r.jumlah for r in rows}
+        data = []
+        for i in range(7):
+            d = (now - timedelta(days=6 - i)).date()
+            data.append({"label": d.strftime("%a"), "jumlah": hasil.get(str(d), 0)})
+    else:  # bulanan — last 6 months
+        data = []
+        for i in range(5, -1, -1):
+            m = (now.month - i - 1) % 12 + 1
+            y = now.year + ((now.month - i - 1) // 12)
+            month_start = datetime(y, m, 1, tzinfo=timezone.utc)
+            if m == 12:
+                month_end = datetime(y + 1, 1, 1, tzinfo=timezone.utc)
+            else:
+                month_end = datetime(y, m + 1, 1, tzinfo=timezone.utc)
+            count = LaporanInfluenza.query.filter(
+                LaporanInfluenza.timestamp >= month_start,
+                LaporanInfluenza.timestamp < month_end
+            ).count()
+            data.append({"label": month_start.strftime("%b"), "jumlah": count})
+
+    return jsonify({"mode": mode, "data": data})
+
+
+@admin_bp.get("/aktivitas")
+@admin_required
+def aktivitas_terkini():
+    lap = LaporanInfluenza.query.order_by(LaporanInfluenza.timestamp.desc()).limit(5).all()
+    usr = Pengguna.query.order_by(Pengguna.created_at.desc()).limit(5).all()
+
+    items = []
+    for l in lap:
+        items.append({
+            "tipe":   "laporan",
+            "judul":  f"Laporan baru dari {l.nama_wilayah or 'lokasi tidak diketahui'}",
+            "detail": f"Skor influenza {l.skor_influenza}",
+            "waktu":  l.timestamp.isoformat(),
+        })
+    for p in usr:
+        items.append({
+            "tipe":   "pengguna",
+            "judul":  "User baru terdaftar",
+            "detail": p.username,
+            "waktu":  p.created_at.isoformat(),
+        })
+    items.sort(key=lambda x: x["waktu"], reverse=True)
+    return jsonify({"aktivitas": items[:10]})
