@@ -266,7 +266,7 @@ def tanya_ai_agent(
             json={
                 "model":       config.AI_MODEL,
                 "messages":    messages,
-                "temperature": 0.7,
+                "temperature": 0.3,
                 "max_tokens":  1024,
             },
         )

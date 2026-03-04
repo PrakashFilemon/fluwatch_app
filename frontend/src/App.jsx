@@ -126,7 +126,13 @@ export default function App() {
             animation: "spin 0.7s linear infinite",
           }}
         />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes ai-tab-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(58,142,133,0); border-color: rgba(58,142,133,0.55); }
+            50% { box-shadow: 0 0 8px 2px rgba(58,142,133,0.30); border-color: rgba(58,142,133,0.90); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -377,26 +383,54 @@ export default function App() {
           borderBottom: "1px solid rgba(58,142,133,0.12)",
         }}
       >
-        <div className="flex min-w-max">
-          {TAB.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className="flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap"
-              style={
-                tab === t.id
-                  ? {
-                      borderColor: "#3A8E85",
-                      color: "#1a2e2c",
-                      background: "rgba(58,142,133,0.05)",
-                    }
-                  : { borderColor: "transparent", color: "#64748b" }
-              }
-            >
-              <span style={{ fontSize: "12px" }}>{t.icon}</span>
-              <span className="hidden xs:inline sm:inline">{t.label}</span>
-            </button>
-          ))}
+        <div className="flex min-w-max items-center">
+          {TAB.map((t) => {
+            const isAI = t.id === "analisis";
+            const isActive = tab === t.id;
+
+            if (isAI) {
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className="flex items-center gap-1.5 mx-1 my-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap"
+                  style={
+                    isActive
+                      ? {
+                          background: "linear-gradient(135deg, #3A8E85, #006B5F)",
+                          color: "white",
+                          boxShadow: "0 0 14px rgba(58,142,133,0.55), 0 2px 6px rgba(0,0,0,0.15)",
+                        }
+                      : {
+                          background: "transparent",
+                          border: "1.5px solid rgba(58,142,133,0.55)",
+                          color: "#3A8E85",
+                          animation: "ai-tab-pulse 2.5s ease-in-out infinite",
+                        }
+                  }
+                >
+                  <span style={{ fontSize: "11px" }}>✦</span>
+                  <span>AI</span>
+                </button>
+              );
+            }
+
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className="flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap"
+                style={
+                  isActive
+                    ? { borderColor: "#3A8E85", color: "#1a2e2c", background: "rgba(58,142,133,0.05)" }
+                    : { borderColor: "transparent", color: "#64748b" }
+                }
+              >
+                <span style={{ fontSize: "12px" }}>{t.icon}</span>
+                <span className="hidden xs:inline sm:inline">{t.label}</span>
+              </button>
+            );
+          })}
 
           {/* Info refresh — tampil di tab bar sebelah kanan */}
           <div className="ml-auto flex items-center pr-2">

@@ -2,7 +2,7 @@
 POST /api/analisis  — AI Agent analisis penyebaran berbasis data lokal
 """
 from datetime import datetime, timedelta, timezone
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from extensions import limiter
 from config import config
